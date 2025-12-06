@@ -1,0 +1,13 @@
+[nerdfont]
+success = ""
+error = ""
+warn = ""
+info = ""
+net = "󰖩"
+
+[ascii]
+success = "*"
+error = "!"
+warn = "!!"
+info = "i"
+net = "#"

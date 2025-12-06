@@ -1,0 +1,23 @@
+[tag]
+prefix = "["
+suffix = "]"
+transform = "lowercase"
+min_width = 0
+alignment = "left"
+
+[labels]
+error = "error"
+success = "success"
+info = "info"
+warn = "warn"
+
+[structure]
+terminal = "{tag} {icon} {msg}"
+file = "{timestamp} {tag} {msg}"
+
+[logging]
+base_dir = "~/.local/state/hyprcore/logs"
+path_structure = "{year}/{month}/{scope}"
+filename_structure = "{level}.{year}-{month}-{day}.log"
+timestamp_format = "%H:%M:%S"
+write_by_default = true

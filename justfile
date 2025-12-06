@@ -1,0 +1,40 @@
+# Hyprcore Justfile
+
+default: build
+
+# Build release binaries
+build:
+    cargo build --release
+
+# Run the installation script (Config setup + Build)
+install:
+    ./install.sh
+
+# Run tests
+test:
+    cargo test
+
+# Clean build artifacts
+clean:
+    cargo clean
+
+# Check code quality
+lint:
+    cargo clippy -- -D warnings
+    cargo fmt -- --check
+
+# Run corelog example
+run-log level="info" scope="TEST" msg="Hello Just":
+    ./target/release/corelog {{level}} {{scope}} "{{msg}}"
+
+# Run hyprcore sync
+sync:
+    ./target/release/hyprcore sync
+
+# Install example fragment
+install-waybar:
+    ./target/release/hyprcore install ./assets/fragments/waybar.frag
+
+# Uninstall everything
+uninstall:
+    ./uninstall.sh
