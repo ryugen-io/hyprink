@@ -164,6 +164,16 @@ level = "info"
 scope = "SYNC"
 msg = "no fragments to sync"
 
+[presets.hook_run]
+level = "info"
+scope = "HOOK"
+msg = "running hooks"
+
+[presets.hook_ok]
+level = "success"
+scope = "HOOK"
+msg = "hooks executed"
+
 [presets.list_empty]
 level = "info"
 scope = "LIST"

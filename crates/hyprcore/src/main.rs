@@ -199,7 +199,9 @@ fn process_fragment(path: &Path, tera: &mut Tera, ctx: &TeraContext) -> Result<(
 
     // Run Hooks
     if let Some(cmd) = &pkg.hooks.reload {
-        let _ = Command::new("sh").arg("-c").arg(cmd).spawn();
+        log("hook_run");
+        let _ = Command::new("sh").arg("-c").arg(cmd).status();
+        log("hook_ok");
     }
 
     Ok(())
