@@ -12,7 +12,7 @@ info = "info"
 warn = "warn"
 
 [structure]
-terminal = "{tag} {icon} {msg}"
+terminal = "{tag} {scope} {icon} {msg}"
 file = "{timestamp} {tag} {msg}"
 
 [logging]

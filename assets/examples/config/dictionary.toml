@@ -46,6 +46,16 @@ level = "success"
 scope = "BUILD"
 msg = "build complete"
 
+[presets.pack_ok]
+level = "success"
+scope = "PACK"
+msg = "package created"
+
+[presets.install_ok]
+level = "success"
+scope = "INSTALL"
+msg = "installed successfully"
+
 [presets.build_fail]
 level = "error"
 scope = "BUILD"
@@ -143,6 +153,21 @@ msg = "connection failed"
 level = "success"
 scope = "SYNC"
 msg = "sync complete"
+
+[presets.sync_start]
+level = "info"
+scope = "SYNC"
+msg = "syncing fragments"
+
+[presets.sync_empty]
+level = "info"
+scope = "SYNC"
+msg = "no fragments to sync"
+
+[presets.list_empty]
+level = "info"
+scope = "LIST"
+msg = "no fragments installed"
 
 [presets.sync_fail]
 level = "error"

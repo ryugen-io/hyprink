@@ -1,10 +1,11 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use tera::{Context, Tera};
 
 fn bench_render(c: &mut Criterion) {
     let mut tera = Tera::default();
-    tera.add_raw_template("bench", "Hello {{ name }}! Color is {{ colors.primary }}").unwrap();
-    
+    tera.add_raw_template("bench", "Hello {{ name }}! Color is {{ colors.primary }}")
+        .unwrap();
+
     let mut ctx = Context::new();
     ctx.insert("name", "User");
     ctx.insert("colors", &serde_json::json!({"primary": "#ff0000"}));

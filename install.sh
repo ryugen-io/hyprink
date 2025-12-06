@@ -157,7 +157,7 @@ info = "info"
 warn = "warn"
 
 [structure]
-terminal = "{tag} {icon} {msg}"
+terminal = "{tag} {scope} {icon} {msg}"
 file = "{timestamp} {tag} {msg}"
 
 [logging]
@@ -195,6 +195,16 @@ msg = "service failed"
 level = "success"
 scope = "BUILD"
 msg = "build complete"
+
+[presets.pack_ok]
+level = "success"
+scope = "PACK"
+msg = "package created"
+
+[presets.install_ok]
+level = "success"
+scope = "INSTALL"
+msg = "installed successfully"
 
 [presets.build_fail]
 level = "error"
@@ -247,6 +257,21 @@ msg = "connection established"
 level = "success"
 scope = "SYNC"
 msg = "sync complete"
+
+[presets.sync_start]
+level = "info"
+scope = "SYNC"
+msg = "syncing fragments"
+
+[presets.sync_empty]
+level = "info"
+scope = "SYNC"
+msg = "no fragments to sync"
+
+[presets.list_empty]
+level = "info"
+scope = "LIST"
+msg = "no fragments installed"
 
 # Backup
 [presets.backup_start]
@@ -333,7 +358,8 @@ main() {
     echo -e "${PURPLE}[hyprcore]${NC} ${CHECK}  Installation complete"
     echo ""
     echo "Try:"
-    echo "  corelog error TEST 'Hello World'"
+    echo "  corelog test_pass"
+    echo "  corelog install_ok"
     echo "  hyprcore install ./assets/fragments/waybar.frag"
 }
 

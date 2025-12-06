@@ -3,7 +3,6 @@ use hyprcore::packager;
 
 use anyhow::{Context, Result, anyhow};
 use clap::{Parser, Subcommand};
-use colored::Colorize;
 use core_lib::config::HyprConfig;
 use directories::ProjectDirs;
 
@@ -11,6 +10,11 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use tera::{Context as TeraContext, Tera};
+
+/// Log via corelog preset
+fn log(preset: &str) {
+    let _ = Command::new("corelog").arg(preset).status();
+}
 
 #[derive(Parser)]
 #[command(name = "hyprcore", version, about = "Hyprcore Fragment Manager")]
@@ -46,7 +50,7 @@ fn main() -> Result<()> {
     match cli.command {
         Commands::Install { path } => {
             install_fragment_or_package(&path, &fragments_dir)?;
-            println!("{}", "Installed successfully.".green());
+            log("install_ok");
             sync_fragments(&fragments_dir)?;
         }
         Commands::Pack { input, output } => {
@@ -55,7 +59,7 @@ fn main() -> Result<()> {
                 PathBuf::from(format!("{}.fpkg", name))
             });
             packager::pack(&input, &out)?;
-            println!("{} {}", "Created package:".green(), out.display());
+            log("pack_ok");
         }
         Commands::Sync => {
             sync_fragments(&fragments_dir)?;
@@ -89,7 +93,7 @@ fn install_fragment_or_package(path: &Path, fragments_dir: &Path) -> Result<()> 
 
 fn list_fragments(fragments_dir: &Path) -> Result<()> {
     if !fragments_dir.exists() {
-        println!("No fragments installed.");
+        log("list_empty");
         return Ok(());
     }
 
@@ -101,14 +105,14 @@ fn list_fragments(fragments_dir: &Path) -> Result<()> {
             let content = fs::read_to_string(&path)?;
             if let Ok(pkg) = toml::from_str::<Fragment>(&content) {
                 println!(
-                    "{} ({})",
-                    pkg.meta.id.cyan(),
+                    "  {} ({})",
+                    pkg.meta.id,
                     path.file_name().unwrap().to_string_lossy()
                 );
             } else {
-                println!(
-                    "{} (Invalid)",
-                    path.file_name().unwrap().to_string_lossy().red()
+                eprintln!(
+                    "  {} (Invalid)",
+                    path.file_name().unwrap().to_string_lossy()
                 );
             }
         }
@@ -117,7 +121,7 @@ fn list_fragments(fragments_dir: &Path) -> Result<()> {
 }
 
 fn sync_fragments(fragments_dir: &Path) -> Result<()> {
-    println!("Syncing fragments...");
+    log("sync_start");
 
     // 1. Load Config
     let config = HyprConfig::load().context("Failed to load Hyprcore config")?;
@@ -141,7 +145,7 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
 
     // 3. Process Fragments
     if !fragments_dir.exists() {
-        println!("No fragments to sync.");
+        log("sync_empty");
         return Ok(());
     }
 
@@ -153,15 +157,13 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
         }
     }
 
-    println!("{}", "Sync complete.".green());
+    log("sync_ok");
     Ok(())
 }
 
 fn process_fragment(path: &Path, ctx: &TeraContext) -> Result<()> {
     let content = fs::read_to_string(path)?;
     let pkg: Fragment = toml::from_str(&content).context(format!("Failed to parse {:?}", path))?;
-
-    println!("Processing {}...", pkg.meta.id);
 
     // Render Templates
     for tpl in &pkg.templates {
@@ -175,8 +177,6 @@ fn process_fragment(path: &Path, ctx: &TeraContext) -> Result<()> {
 
     // Run Hooks
     if let Some(cmd) = &pkg.hooks.reload {
-        println!("  Running hook: {}", cmd);
-        println!("  Running hook: {}", cmd);
         let _ = Command::new("sh").arg("-c").arg(cmd).spawn();
     }
 
@@ -207,7 +207,6 @@ fn render_and_write(
         fs::create_dir_all(parent)?;
     }
     fs::write(&target_path, rendered)?;
-    println!("  -> Wrote {}", target_path.display());
 
     Ok(())
 }

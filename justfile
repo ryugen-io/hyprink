@@ -24,8 +24,8 @@ lint:
     cargo fmt -- --check
 
 # Run corelog example
-run-log level="info" scope="TEST" msg="Hello Just":
-    ./target/release/corelog {{level}} {{scope}} "{{msg}}"
+run-log preset="test_pass":
+    ./target/release/corelog {{preset}}
 
 # Run hyprcore sync
 sync:

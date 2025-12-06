@@ -31,5 +31,3 @@ fn test_cli_help() {
         .success()
         .stdout(predicate::str::contains("Usage:"));
 }
-
-

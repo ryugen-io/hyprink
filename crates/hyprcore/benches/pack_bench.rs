@@ -1,4 +1,4 @@
-use criterion::{criterion_group, criterion_main, Criterion};
+use criterion::{Criterion, criterion_group, criterion_main};
 use hyprcore::packager::{pack, unpack};
 use std::fs;
 use tempfile::tempdir;
@@ -7,14 +7,15 @@ fn bench_pack(c: &mut Criterion) {
     let dir = tempdir().unwrap();
     let source_dir = dir.path().join("source");
     let output_file = dir.path().join("bench.fpkg");
-    
+
     fs::create_dir_all(&source_dir).unwrap();
     // Create 100 dummy fragments
     for i in 0..100 {
         fs::write(
             source_dir.join(format!("test_{}.frag", i)),
-            format!("[meta]\nid = \"test_{}\"\n", i)
-        ).unwrap();
+            format!("[meta]\nid = \"test_{}\"\n", i),
+        )
+        .unwrap();
     }
 
     c.bench_function("pack 100 fragments", |b| {
@@ -27,13 +28,14 @@ fn bench_unpack(c: &mut Criterion) {
     let source_dir = dir.path().join("source");
     let output_file = dir.path().join("bench.fpkg");
     let unpack_dir = dir.path().join("unpacked");
-    
+
     fs::create_dir_all(&source_dir).unwrap();
     for i in 0..100 {
         fs::write(
             source_dir.join(format!("test_{}.frag", i)),
-            format!("[meta]\nid = \"test_{}\"\n", i)
-        ).unwrap();
+            format!("[meta]\nid = \"test_{}\"\n", i),
+        )
+        .unwrap();
     }
     pack(&source_dir, &output_file).unwrap();
 

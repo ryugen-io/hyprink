@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use chrono::Local;
-use clap::{Parser, Subcommand};
+use clap::Parser;
 use colored::Colorize;
 use core_lib::config::HyprConfig;
 use core_lib::factory::{ColorResolver, TagFactory};
@@ -11,68 +11,36 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "corelog", version, about = "Hyprcore Logging Tool")]
 struct Cli {
-    #[command(subcommand)]
-    command: Option<Commands>,
-
-    /// Level (e.g., error, info)
-    #[arg(index = 1)]
-    level: Option<String>,
-
-    /// Scope (e.g., BACKUP, SYSTEM)
-    #[arg(index = 2)]
-    scope: Option<String>,
-
-    /// Message
-    #[arg(index = 3)]
-    message: Option<String>,
-}
-
-#[derive(Subcommand)]
-enum Commands {
-    Preset { key: String, scope: Option<String> },
+    /// Preset key from dictionary.toml
+    preset: String,
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
     let config = HyprConfig::load().context("Failed to load Hyprcore config")?;
 
-    let (level, scope, msg) = match cli.command {
-        Some(Commands::Preset { key, scope }) => {
-            let preset = config
-                .dictionary
-                .presets
-                .get(&key)
-                .context(format!("Preset '{}' not found", key))?;
+    let preset = config.dictionary.presets.get(&cli.preset).context(format!(
+        "Preset '{}' not found in dictionary.toml",
+        cli.preset
+    ))?;
 
-            let final_scope = scope
-                .or_else(|| preset.scope.clone())
-                .context("Scope not defined in preset and not provided as argument")?;
+    let level = &preset.level;
+    let scope = preset
+        .scope
+        .as_ref()
+        .context("Preset missing 'scope' field")?;
+    let msg = &preset.msg;
 
-            (preset.level.clone(), final_scope, preset.msg.clone())
-        }
-        None => {
-            if let (Some(l), Some(s), Some(m)) = (cli.level, cli.scope, cli.message) {
-                (l, s, m)
-            } else {
-                // If arguments are missing, print help
-                use clap::CommandFactory;
-                Cli::command().print_help()?;
-                return Ok(());
-            }
-        }
-    };
-
-    log_to_terminal(&config, &level, &scope, &msg);
+    log_to_terminal(&config, level, scope, msg);
 
     if config.layout.logging.write_by_default {
-        log_to_file(&config, &level, &scope, &msg)?;
+        log_to_file(&config, level, scope, msg)?;
     }
 
     Ok(())
 }
 
 fn log_to_terminal(config: &HyprConfig, level: &str, scope: &str, msg: &str) {
-    // 1. Resolve Icon
     let icon_set_key = &config.theme.settings.active_icons;
     let icon = if icon_set_key == "nerdfont" {
         config
@@ -90,11 +58,8 @@ fn log_to_terminal(config: &HyprConfig, level: &str, scope: &str, msg: &str) {
             .unwrap_or("?")
     };
 
-    // 2. Resolve Tag
     let tag = TagFactory::create_tag(config, level);
 
-    // 3. Resolve Color
-    // Default to white if not found
     let color_hex = config
         .theme
         .colors
@@ -105,28 +70,18 @@ fn log_to_terminal(config: &HyprConfig, level: &str, scope: &str, msg: &str) {
 
     let color = ColorResolver::hex_to_color(color_hex);
 
-    // 4. Format
-    // Template: "{icon} {tag} {scope} - {msg}"
-    // We do a simple replace here. In a real app, maybe use a template engine or regex.
     let mut output = config.layout.structure.terminal.clone();
     output = output.replace("{icon}", icon);
     output = output.replace("{tag}", &tag);
     output = output.replace("{scope}", scope);
     output = output.replace("{msg}", msg);
 
-    // Apply color to the whole line or parts?
-    // The design says "Apply Colors (Icon & Tag = Red)".
-    // Let's colorize the whole string for now or just the tag/icon.
-    // "Stream A (Terminal): Apply Colors (Icon & Tag = Red)."
-    // So scope and msg might be plain or different.
-    // For simplicity, I will colorize the whole line with the level color.
     println!("{}", output.custom_color(color));
 }
 
 fn log_to_file(config: &HyprConfig, level: &str, scope: &str, msg: &str) -> Result<()> {
     let now = Local::now();
 
-    // 1. Format Content
     let tag = TagFactory::create_tag(config, level);
     let timestamp = now
         .format(&config.layout.logging.timestamp_format)
@@ -136,15 +91,9 @@ fn log_to_file(config: &HyprConfig, level: &str, scope: &str, msg: &str) -> Resu
     content = content.replace("{timestamp}", &timestamp);
     content = content.replace("{tag}", &tag);
     content = content.replace("{msg}", msg);
-    content = content.replace("{scope}", scope); // Just in case it's in the file format too
-
-    // 2. Determine Path
-    // base_dir: "~/.local/state/hyprcore/logs"
-    // path_structure: "{year}/{month}/{scope}"
-    // filename_structure: "{level}.{year}-{month}-{day}.log"
+    content = content.replace("{scope}", scope);
 
     let base_dir_str = &config.layout.logging.base_dir;
-    // Expand ~
     let base_dir = if base_dir_str.starts_with("~") {
         let home = directories::UserDirs::new().context("Could not find home dir")?;
         PathBuf::from(base_dir_str.replace("~", home.home_dir().to_str().unwrap()))
