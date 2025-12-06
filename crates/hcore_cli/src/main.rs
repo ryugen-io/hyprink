@@ -1,9 +1,9 @@
-use hyprcore::fragment::Fragment;
-use hyprcore::packager;
+use hcore_cli::fragment::Fragment;
+use hcore_cli::packager;
 
 use anyhow::{Context, Result, anyhow};
 use clap::{Parser, Subcommand};
-use core_lib::config::HyprConfig;
+use hcore_lib::config::HyprConfig;
 use directories::ProjectDirs;
 
 use std::collections::HashMap;

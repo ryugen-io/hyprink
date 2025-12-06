@@ -1,0 +1,18 @@
+[package]
+name = "hcore_log"
+version = "0.1.0"
+edition = "2024"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "corelog"
+path = "src/main.rs"
+
+[dependencies]
+hcore_lib = { path = "../hcore_lib" }
+clap = { version = "4.4", features = ["derive"] }
+chrono = "0.4"
+colored = "2.0"
+anyhow = "1.0"
+directories = "5.0"

@@ -351,30 +351,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
-name = "core_lib"
-version = "0.1.0"
-dependencies = [
- "colored",
- "directories",
- "lazy_static",
- "serde",
- "thiserror 1.0.69",
- "toml",
-]
-
-[[package]]
-name = "corelog"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "colored",
- "core_lib",
- "directories",
-]
-
-[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -695,6 +671,50 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 
 [[package]]
+name = "hcore_cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "colored",
+ "criterion",
+ "directories",
+ "hcore_lib",
+ "predicates",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tera",
+ "toml",
+ "zip",
+]
+
+[[package]]
+name = "hcore_lib"
+version = "0.1.0"
+dependencies = [
+ "colored",
+ "directories",
+ "lazy_static",
+ "serde",
+ "thiserror 1.0.69",
+ "toml",
+]
+
+[[package]]
+name = "hcore_log"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "colored",
+ "directories",
+ "hcore_lib",
+]
+
+[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -722,26 +742,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6cb51c9a029ddc91b07a787f1d86b53ccfa49b0e86688c946ebe8d3555685dd7"
 dependencies = [
  "libm",
-]
-
-[[package]]
-name = "hyprcore"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "colored",
- "core_lib",
- "criterion",
- "directories",
- "predicates",
- "serde",
- "serde_json",
- "tempfile",
- "tera",
- "toml",
- "zip",
 ]
 
 [[package]]
