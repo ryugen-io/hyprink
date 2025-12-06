@@ -6,14 +6,32 @@ use clap::{Parser, Subcommand};
 use core_lib::config::HyprConfig;
 use directories::ProjectDirs;
 
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tera::{Context as TeraContext, Tera};
+use tera::{Context as TeraContext, Tera, Value, to_value, try_get_value};
 
 /// Log via corelog preset
 fn log(preset: &str) {
     let _ = Command::new("corelog").arg(preset).status();
+}
+
+/// Tera filter: hex_to_rgb
+/// Converts "#RRGGBB" string to [255, 255, 255] array of integers
+fn hex_to_rgb(value: &Value, _args: &HashMap<String, Value>) -> tera::Result<Value> {
+    let s = try_get_value!("hex_to_rgb", "value", String, value);
+    let hex = s.trim_start_matches('#');
+    
+    if hex.len() != 6 {
+         return Err(tera::Error::msg(format!("Invalid hex color: {}", s)));
+    }
+
+    let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+    let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+    let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+
+    Ok(to_value(vec![r, g, b]).unwrap())
 }
 
 #[derive(Parser)]
@@ -126,7 +144,11 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
     // 1. Load Config
     let config = HyprConfig::load().context("Failed to load Hyprcore config")?;
 
-    // 2. Prepare Tera Context
+    // 2. Prepare Tera
+    let mut tera = Tera::default();
+    tera.register_filter("hex_to_rgb", hex_to_rgb);
+
+    // 3. Prepare Context
     let mut ctx = TeraContext::new();
 
     // Colors
@@ -143,7 +165,7 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
     };
     ctx.insert("icons", active_icons);
 
-    // 3. Process Fragments
+    // 4. Process Fragments
     if !fragments_dir.exists() {
         log("sync_empty");
         return Ok(());
@@ -153,7 +175,7 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
         let entry = entry?;
         let path = entry.path();
         if path.extension().is_some_and(|ext| ext == "frag") {
-            process_fragment(&path, &ctx)?;
+            process_fragment(&path, &mut tera, &ctx)?;
         }
     }
 
@@ -161,18 +183,18 @@ fn sync_fragments(fragments_dir: &Path) -> Result<()> {
     Ok(())
 }
 
-fn process_fragment(path: &Path, ctx: &TeraContext) -> Result<()> {
+fn process_fragment(path: &Path, tera: &mut Tera, ctx: &TeraContext) -> Result<()> {
     let content = fs::read_to_string(path)?;
     let pkg: Fragment = toml::from_str(&content).context(format!("Failed to parse {:?}", path))?;
 
     // Render Templates
     for tpl in &pkg.templates {
-        render_and_write(&tpl.target, &tpl.content, ctx)?;
+        render_and_write(&tpl.target, &tpl.content, tera, ctx)?;
     }
 
-    // Render Files (Same logic, maybe different semantic meaning but same operation)
+    // Render Files
     for file in &pkg.files {
-        render_and_write(&file.target, &file.content, ctx)?;
+        render_and_write(&file.target, &file.content, tera, ctx)?;
     }
 
     // Run Hooks
@@ -186,6 +208,7 @@ fn process_fragment(path: &Path, ctx: &TeraContext) -> Result<()> {
 fn render_and_write(
     target_template: &str,
     content_template: &str,
+    tera: &mut Tera,
     ctx: &TeraContext,
 ) -> Result<()> {
     // Expand ~ in target path
@@ -199,8 +222,8 @@ fn render_and_write(
     let target_path = PathBuf::from(&target_path_str);
 
     // Render Content
-    let rendered =
-        Tera::one_off(content_template, ctx, false).context("Failed to render template")?;
+    let rendered = tera.render_str(content_template, ctx)
+        .context("Failed to render template")?;
 
     // Write
     if let Some(parent) = target_path.parent() {
