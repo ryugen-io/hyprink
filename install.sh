@@ -372,4 +372,4 @@ main() {
     # PATH check
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
         warn "$INSTALL_DIR not in PATH"
-        echo "  Add to config.fish: set -Ua fish_user_paths $HOME/.local/bin
+        echo "  Add to config.fish: set -Ua fish_user_paths \$HOME/.local/bin"
