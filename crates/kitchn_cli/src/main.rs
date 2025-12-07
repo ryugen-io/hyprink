@@ -14,6 +14,11 @@ fn log(preset: &str) {
     let _ = Command::new("kitchn-log").arg(preset).status();
 }
 
+/// Log via kitchn-log preset with custom message
+fn log_msg(preset: &str, msg: &str) {
+    let _ = Command::new("kitchn-log").arg(preset).arg(msg).status();
+}
+
 #[derive(Parser)]
 #[command(name = "kitchn", version, about = "Kitchn Ingredient Manager")]
 struct Cli {
@@ -57,7 +62,7 @@ fn main() -> Result<()> {
             // Apply only the newly installed ingredients
             let config = Cookbook::load().context("Failed to load Kitchn cookbook")?;
             for pkg in installed {
-                println!("Applying: {}", pkg.meta.name);
+                log_msg("sync_start", &format!("applying {}", pkg.meta.name));
                 processor::apply(&pkg, &config)?;
             }
         }
@@ -105,7 +110,7 @@ fn install_to_pantry(path: &Path, db: &mut Pantry) -> Result<Vec<Ingredient>> {
                 let pkg: Ingredient = toml::from_str(&content)
                     .with_context(|| format!("Failed to parse ingredient inside zip: {}", file.name()))?;
                 
-                println!("Stocking from pantry: {}", pkg.meta.name);
+                log_msg("install_ok", &format!("stocking {}", pkg.meta.name));
                 // We clone here because store takes ownership, but we want to return it too
                 // Or proper: store takes ownership. We can clone before storing.
                 let pkg_clone = pkg.clone();
@@ -119,7 +124,7 @@ fn install_to_pantry(path: &Path, db: &mut Pantry) -> Result<Vec<Ingredient>> {
         let pkg: Ingredient = toml::from_str(&content)
             .with_context(|| format!("Failed to parse ingredient: {:?}", path))?;
             
-        println!("Stocking ingredient: {}", pkg.meta.name);
+        log_msg("install_ok", &format!("stocking {}", pkg.meta.name));
         let pkg_clone = pkg.clone();
         db.store(pkg)?;
         installed_list.push(pkg_clone);
