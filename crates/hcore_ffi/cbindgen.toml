@@ -72,7 +72,8 @@ trailer = """
 #define HCORE_ABI_VERSION_MINOR 2
 #define HCORE_ABI_VERSION_PATCH 1
 
-/* End of hcore.h */"""
+/* End of hcore.h */
+#endif /* HCORE_H */"""
 
 # Formatting
 line_length = 100

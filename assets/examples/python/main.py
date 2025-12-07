@@ -4,7 +4,7 @@ import sys
 
 # Load the shared library
 # In a real scenario, this would be in /usr/lib or similar
-lib_path = os.path.abspath("../../../target/release/libhcore_lib.so")
+lib_path = os.path.abspath("../../../target/release/libhcore_ffi.so")
 try:
     hcore = ctypes.CDLL(lib_path)
 except OSError as e:

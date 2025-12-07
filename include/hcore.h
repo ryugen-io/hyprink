@@ -138,3 +138,4 @@ int hcore_install(struct HCoreContext *ctx, const char *path);
 #define HCORE_ABI_VERSION_PATCH 1
 
 /* End of hcore.h */
+#endif /* HCORE_H */
