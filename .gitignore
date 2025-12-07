@@ -1,15 +1,10 @@
-# Build artifacts
-/target/
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+/target
+**/*.rs.bk
+Cargo.lock
+.idea
+.vscode
+*.iml
+*.fpkg
+assets/examples/cpp/main
+assets/examples/cpp/output.fpkg
+assets/examples/python/output.fpkg

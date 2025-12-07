@@ -5,7 +5,7 @@ use std::path::PathBuf;
 
 fn main() {
     let crate_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    
+
     // Output to project root include/ directory for easy access
     let mut output_file = PathBuf::from(&crate_dir);
     output_file.pop(); // crates/
