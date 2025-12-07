@@ -75,6 +75,10 @@ example-rust:
 # Run all examples
 examples: example-cpp example-python example-rust
 
+# Memory leak check (ASan + LSan)
+memcheck: build
+    ../utils/hyprcore/memcheck.sh .
+
 # Show project statistics (LOC, Sizes)
 stats:
     ../utils/hyprcore/stats.sh .
