@@ -212,7 +212,7 @@ main() {
     success "Build complete"
     
     # Install binaries
-    local binaries=("corelog" "kitchn")
+    local binaries=("kitchn-log" "kitchn")
     for bin in "${binaries[@]}"; do
         local src="target/release/${bin}"
         local dst="${INSTALL_DIR}/${bin}"

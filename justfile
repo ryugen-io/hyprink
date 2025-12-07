@@ -23,9 +23,9 @@ lint:
     cargo clippy -- -D warnings
     cargo fmt -- --check
 
-# Run corelog example
+# Run kitchn-log example
 run-log preset="test_pass":
-    ./target/release/corelog {{preset}}
+    ./target/release/kitchn-log {{preset}}
 
 # Run kitchn sync
 sync:
