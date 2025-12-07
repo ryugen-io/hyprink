@@ -145,7 +145,7 @@ impl Cookbook {
         
         // Load System Dictionary (Embedded)
         // This ensures defaults are always available without external files
-        const SYSTEM_DICTIONARY: &str = include_str!("../../../assets/defaults/system_dictionary.toml");
+        const SYSTEM_DICTIONARY: &str = include_str!("defaults.toml");
         
         // Parse embedded defaults
         let mut dictionary: DictionaryConfig = toml::from_str(SYSTEM_DICTIONARY)
