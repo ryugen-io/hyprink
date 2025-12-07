@@ -1,5 +1,8 @@
-[meta]
-id = "colors_test"
+[package]
+name = "colors-test"
+version = "0.1.0"
+authors = ["Hyprcore Team"]
+description = "A simple fragment to test color rendering"
 
 [[templates]]
 target = "~/.local/bin/hyprcore_test_colors"
