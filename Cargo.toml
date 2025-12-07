@@ -1,9 +1,11 @@
 [workspace]
-members = [
-    "crates/*",
-    "assets/examples/rust",
-]
 resolver = "2"
+members = [
+    "crates/kitchn_cli",
+    "crates/kitchn_ffi",
+    "crates/kitchn_lib",
+    "crates/kitchn_log",
+]
 
 [profile.release]
 lto = true

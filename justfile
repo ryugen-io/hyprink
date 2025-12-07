@@ -1,4 +1,4 @@
-# Hyprcore Justfile
+# Kitchn Justfile
 
 default: build
 
@@ -27,13 +27,13 @@ lint:
 run-log preset="test_pass":
     ./target/release/corelog {{preset}}
 
-# Run hyprcore sync
+# Run kitchn sync
 sync:
-    ./target/release/hyprcore sync
+    ./target/release/kitchn sync
 
-# Install example fragment
+# Install example ingredient
 install-waybar:
-    ./target/release/hyprcore install ./assets/fragments/waybar.frag
+    ./target/release/kitchn install ./assets/ingredients/waybar.ing
 
 
 # Uninstall everything
@@ -46,7 +46,7 @@ pre-commit:
 
 # Show demo logs
 show:
-    ../utils/hyprcore/demo_logs.sh
+    ../utils/kitchn/demo_logs.sh
 
 # Audit dependencies
 audit:
@@ -55,7 +55,7 @@ audit:
 # Run benchmarks (Criterion + Hyperfine)
 bench:
     cargo bench
-    ../utils/hyprcore/bench.sh
+    ../utils/kitchn/bench.sh
 
 # Run C++ FFI Example
 example-cpp: build
@@ -77,8 +77,8 @@ examples: example-cpp example-python example-rust
 
 # Memory leak check (ASan + LSan)
 memcheck: build
-    ../utils/hyprcore/memcheck.sh .
+    ../utils/kitchn/memcheck.sh .
 
 # Show project statistics (LOC, Sizes)
 stats:
-    ../utils/hyprcore/stats.sh .
+    ../utils/kitchn/stats.sh .

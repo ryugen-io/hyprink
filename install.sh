@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
 # =============================================================================
-# Hyprcore Install Script
+# Kitchn Install Script
 # Sets up config directory, creates default configs, builds and installs binaries
 # =============================================================================
 
@@ -15,7 +15,7 @@ shopt -s inherit_errexit 2>/dev/null || true
 # Configuration
 # -----------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hyprcore"
+readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/kitchn"
 readonly INSTALL_DIR="${HOME}/.local/bin"
 
 # Colors (Sweet Dracula palette - 24-bit true color)
@@ -161,7 +161,7 @@ terminal = "{tag} {scope} {icon} {msg}"
 file = "{timestamp} {tag} {msg}"
 
 [logging]
-base_dir = "~/.local/state/hyprcore/logs"
+base_dir = "~/.local/state/kitchn/logs"
 path_structure = "{year}/{month}/{scope}"
 filename_structure = "{level}.{year}-{month}-{day}.log"
 timestamp_format = "%H:%M:%S"
@@ -261,17 +261,17 @@ msg = "sync complete"
 [presets.sync_start]
 level = "info"
 scope = "SYNC"
-msg = "syncing fragments"
+msg = "syncing ingredients"
 
 [presets.sync_empty]
 level = "info"
 scope = "SYNC"
-msg = "no fragments to sync"
+msg = "no ingredients to sync"
 
 [presets.list_empty]
 level = "info"
 scope = "LIST"
-msg = "no fragments installed"
+msg = "no ingredients installed"
 
 # Backup
 [presets.backup_start]
@@ -325,11 +325,11 @@ msg = "connection refused"'
 # Main Installation
 # -----------------------------------------------------------------------------
 main() {
-    log "Starting Hyprcore installation"
+    log "Starting Kitchn installation"
     
     # Verify we're in the right directory
     if [[ ! -f "${SCRIPT_DIR}/Cargo.toml" ]]; then
-        die "Must run from hyprcore repository root"
+        die "Must run from kitchn repository root"
     fi
     
     cd "$SCRIPT_DIR" || die "Failed to cd to script directory"
@@ -356,7 +356,7 @@ main() {
     success "Build complete"
     
     # Install binaries
-    local binaries=("corelog" "hyprcore")
+    local binaries=("corelog" "kitchn")
     for bin in "${binaries[@]}"; do
         local src="target/release/${bin}"
         local dst="${INSTALL_DIR}/${bin}"
@@ -372,16 +372,4 @@ main() {
     # PATH check
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
         warn "$INSTALL_DIR not in PATH"
-        echo "  Add to shell config: export PATH=\"\$HOME/.local/bin:\$PATH\""
-    fi
-    
-    echo ""
-    echo -e "${PURPLE}[hyprcore]${NC} ${CHECK}  Installation complete"
-    echo ""
-    echo "Try:"
-    echo "  corelog test_pass"
-    echo "  corelog install_ok"
-    echo "  hyprcore install ./assets/fragments/waybar.frag"
-}
-
-main "$@"
+        echo "  Add to config.fish: set -Ua fish_user_paths $HOME/.local/bin

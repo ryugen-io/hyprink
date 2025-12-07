@@ -710,69 +710,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "841d1cc9bed7f9236f321df977030373f4a4163ae1a7dbfe1a51a2c1a51d9100"
 
 [[package]]
-name = "hcore_cli"
-version = "0.2.1"
-dependencies = [
- "anyhow",
- "assert_cmd",
- "clap",
- "colored",
- "criterion",
- "directories",
- "hcore_lib",
- "predicates",
- "serde",
- "serde_json",
- "tempfile",
- "tera",
- "toml 0.8.23",
- "zip",
-]
-
-[[package]]
-name = "hcore_ffi"
-version = "0.2.1"
-dependencies = [
- "cbindgen",
- "hcore_lib",
- "libc",
- "serde",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "hcore_lib"
-version = "0.2.1"
-dependencies = [
- "anyhow",
- "bincode",
- "cbindgen",
- "chrono",
- "colored",
- "directories",
- "lazy_static",
- "libc",
- "serde",
- "tempfile",
- "tera",
- "thiserror 2.0.17",
- "toml 0.8.23",
- "zip",
-]
-
-[[package]]
-name = "hcore_log"
-version = "0.2.1"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "colored",
- "directories",
- "hcore_lib",
-]
-
-[[package]]
 name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -911,6 +848,69 @@ checksum = "464a3709c7f55f1f721e5389aa6ea4e3bc6aba669353300af094b29ffbdde1d8"
 dependencies = [
  "once_cell",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "kitchn"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "assert_cmd",
+ "clap",
+ "colored",
+ "criterion",
+ "directories",
+ "kitchn_lib",
+ "predicates",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tera",
+ "toml 0.8.23",
+ "zip",
+]
+
+[[package]]
+name = "kitchn_ffi"
+version = "0.1.0"
+dependencies = [
+ "cbindgen",
+ "kitchn_lib",
+ "libc",
+ "serde",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "kitchn_lib"
+version = "0.2.1"
+dependencies = [
+ "anyhow",
+ "bincode",
+ "cbindgen",
+ "chrono",
+ "colored",
+ "directories",
+ "lazy_static",
+ "libc",
+ "serde",
+ "tempfile",
+ "tera",
+ "thiserror 2.0.17",
+ "toml 0.8.23",
+ "zip",
+]
+
+[[package]]
+name = "kitchn_log"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "colored",
+ "directories",
+ "kitchn_lib",
 ]
 
 [[package]]
@@ -1333,14 +1333,6 @@ name = "regex-syntax"
 version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a2d987857b319362043e95f5353c0535c1f58eec5336fdfcf626430af7def58"
-
-[[package]]
-name = "rust_example"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "hcore_lib",
-]
 
 [[package]]
 name = "rustix"
