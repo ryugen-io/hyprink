@@ -3,12 +3,15 @@
 **Strict Corporate Design Enforcement for Hyprland.**
 
 > "Single Source of Truth". One config change propagates to Shells, Scripts, Logs, GUIs, and TUI apps instantly.
+> Now with C-API support for C++, Python, and more.
 
 ---
 
 ##  Mission
 
 Hyprcore unifies the theming and configuration of your entire **Hyprland** ecosystem. Instead of editing 10 different config files to change a color or font, you edit **one** central configuration. Hyprcore then propagates these changes to all your installed applications ("Fragments") via powerful templates.
+
+With the new **C-ABI Compatible Core**, Hyprcore is no longer just a CLI tool—it's a system-wide SDK that can be embedded into any application.
 
 ##  Installation
 
@@ -24,27 +27,62 @@ just install
 
 Both methods will:
 1.  Create `~/.config/hyprcore/` with default configurations.
-2.  Build release binaries (`hyprcore`, `corelog`).
-3.  Install them to `~/.local/bin/`.
+2.  Build release binaries (`hyprcore`, `corelog`) and shared libraries (`libhcore_lib.so`).
+3.  Install them to `~/.local/bin/` and `~/.local/lib/`.
 
 > [!IMPORTANT]
-> Ensure `~/.local/bin` is in your `$PATH`.
+> Ensure `~/.local/bin` is in your `$PATH` and `LD_LIBRARY_PATH` includes user lib directories if needed.
 
 ---
 
 ## Project Structure
 
-```
+```bash
 .
-├── crates/              # Rust crates
-│   ├── core_lib/        # Shared library (config, factories)
-│   ├── corelog/         # Logging CLI
-│   └── hyprcore/        # Fragment manager CLI
-├── assets/              # Resources
+├── crates/
+│   ├── hcore_lib/       # Core SDK (FFI, config, packing, processing)
+│   ├── hcore_cli/       # CLI wrapper (`hyprcore`)
+│   └── hcore_log/       # Logging CLI (`corelog`)
+├── include/             # Generated C headers (hcore.h)
+├── assets/
 │   ├── fragments/       # Example .frag files
-│   └── examples/        # Example configs
+│   ├── examples/        # C++, Python, Rust integration examples
 ├── Cargo.toml           # Workspace config
-└── install.sh
+└── justfile            # Command runner
+```
+
+---
+
+##  Integration & FFI
+
+`hcore_lib` exposes a **C-ABI** compatible interface, allowing you to use Hyprcore's configuration, logging, and packaging logic in other languages.
+
+### C / C++
+Include the header and link against the library:
+```cpp
+#include "hcore.h"
+
+HCoreContext* ctx = hcore_context_new();
+hcore_log(ctx, "info", "cpp_app", "Connected to Hyprcore!");
+hcore_context_free(ctx);
+```
+
+### Python
+Use `ctypes` to load the shared library:
+```python
+import ctypes
+lib = ctypes.CDLL("libhcore_lib.so")
+ctx = lib.hcore_context_new()
+```
+
+### Examples
+Run the built-in examples to see it in action:
+```bash
+just examples
+# OR specific ones:
+just example-cpp
+just example-python
+just example-rust
 ```
 
 ---
@@ -57,51 +95,32 @@ graph TD
         Theme[theme.toml]
         Icons[icons.toml]
         Layout[layout.toml]
-        Dict[dictionary.toml]
     end
 
-    subgraph Hyprcore [Hyprcore Manager]
-        Sync[hyprcore sync]
-        Install[hyprcore install]
-        Pack[hyprcore pack]
-        Fragments[Installed Fragments .frag]
-        Packages[Fragment Packages .fpkg]
+    subgraph Core [hcore_lib SDK]
+        ConfigEngine[Config Engine]
+        Renderer[Tera Renderer]
+        FFI[C-ABI Interface]
     end
 
-    subgraph Output [System State]
-        ConfigFiles[Generated Configs]
-        Hooks[Reload Hooks]
+    subgraph Tools [Official Tools]
+        CLI[hyprcore CLI]
+        Log[corelog CLI]
     end
 
-    subgraph Consumers [Integrations]
-        Waybar[Waybar / GUIs]
-        Fish[Fish / Shells]
-        Scripts[Python Scripts]
+    subgraph External [3rd Party Apps]
+        PyApp[Python Scripts]
+        CppApp[Native C++ Apps]
     end
 
-    %% Configuration Flow
-    Theme --> Sync
-    Icons --> Sync
-    Layout --> Sync
+    Configuration --> ConfigEngine
+    ConfigEngine --> Renderer
+    ConfigEngine --> FFI
     
-    Pack --> Packages
-    Packages --> Install
-    Install --> Fragments
-    Fragments --> Sync
-
-    Sync -->|Render| ConfigFiles
-    Sync -->|Execute| Hooks
-
-    %% Consumption Flow
-    ConfigFiles --> Waybar
-    ConfigFiles --> Fish
-    ConfigFiles --> Scripts
-
-    %% Styling
-    style Configuration fill:#282a36,stroke:#bd93f9,stroke-width:2px,color:#f8f8f2
-    style Hyprcore fill:#44475a,stroke:#ff79c6,stroke-width:2px,color:#f8f8f2
-    style Output fill:#282a36,stroke:#8be9fd,stroke-width:2px,color:#f8f8f2
-    style Consumers fill:#44475a,stroke:#f1fa8c,stroke-width:2px,color:#f8f8f2
+    FFI --> External
+    FFI --> Tools
+    
+    Renderer -->|Generate| ConfigFiles[System Configs]
 ```
 
 ---
@@ -121,9 +140,6 @@ hyprcore pack ./my-fragments -o my-theme.fpkg
 
 # Sync all installed fragments
 hyprcore sync
-
-# List installed fragments
-hyprcore list
 ```
 
 ### Logging
@@ -159,28 +175,6 @@ window#waybar {
 reload = "pkill -SIGUSR2 waybar"
 ```
 
-### Template Syntax (Tera)
-You can access all config values in your templates:
-*   `{{ colors.name }}`
-*   `{{ fonts.name }}`
-*   `{{ icons.name }}`
-
----
-
-## Fragment Packages (`.fpkg`)
-
-Bundle multiple fragments into a single distributable package:
-
-```bash
-# Create package
-hyprcore pack ./my-fragments -o my-theme.fpkg
-
-# Install package (extracts all fragments)
-hyprcore install my-theme.fpkg
-```
-
-`.fpkg` files are standard ZIP archives containing `.frag` files.
-
 ---
 
 ##  Configuration
@@ -193,29 +187,8 @@ Located in `~/.config/hyprcore/`.
 | `icons.toml` | Icon abstractions (nerdfont/ascii) |
 | `layout.toml` | Log structure & formatting |
 | `dictionary.toml` | Pre-defined messages |
-| `*.toml` | Any file can imply a modular config structure via `include` |
 
-### Modular Configuration
-You may split your configuration into multiple files using the `include` key in any of the above configuration files:
-```toml
-include = ["themes/dracula.toml", "themes/overrides.toml"]
-```
-
----
-
-## Performance
-
-Optimized for speed with LTO and size optimizations:
-
-| Command | Time |
-|---------|------|
-| `pack` (100 frags) | ~14 ms |
-| `install` (100 frags) | ~17 ms |
-| `list` | ~4 ms |
-
-Binary sizes:
-- `corelog`: ~1 MB
-- `hyprcore`: ~6 MB
+You may split your configuration using `include = ["path/to/extra.toml"]`.
 
 ---
 
@@ -223,6 +196,4 @@ Binary sizes:
 
 ```bash
 just uninstall
-# OR
-./uninstall.sh
 ```
