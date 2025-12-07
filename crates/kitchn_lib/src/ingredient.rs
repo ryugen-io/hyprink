@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Ingredient {
     #[serde(alias = "package")]
     pub meta: IngredientManifest,
@@ -12,7 +12,7 @@ pub struct Ingredient {
     pub hooks: Hooks,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IngredientManifest {
     pub name: String,
     pub version: String,
@@ -31,13 +31,13 @@ impl IngredientManifest {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Template {
     pub target: String,
     pub content: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Default)]
+#[derive(Debug, Serialize, Deserialize, Default, Clone)]
 pub struct Hooks {
     pub reload: Option<String>,
 }
