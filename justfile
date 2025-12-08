@@ -83,3 +83,13 @@ memcheck: build
 # Show project statistics (LOC, Sizes)
 stats:
     ../utils/kitchn/stats.sh .
+
+# Debug Kitchn (Spawns listener)
+debug:
+    cargo run --bin kitchn -- --debug
+
+# Optimize binaries with UPX
+compact: build
+    @echo "Compacting binaries..."
+    @upx --best --lzma target/release/kitchn
+    @upx --best --lzma target/release/kitchn-log

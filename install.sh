@@ -219,6 +219,13 @@ main() {
         die "Build failed"
     fi
     success "Build complete"
+
+    # Compact binaries if UPX is available
+    if command_exists upx; then
+        log "Compacting binaries with UPX..."
+        compact_binary "target/release/kitchn"
+        compact_binary "target/release/kitchn-log"
+    fi
     
     # Install binaries
     local binaries=("kitchn-log" "kitchn")
@@ -239,6 +246,23 @@ main() {
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
         warn "$INSTALL_DIR not in PATH"
         echo "  Add to config.fish: set -Ua fish_user_paths \$HOME/.local/bin"
+    fi
+}
+
+compact_binary() {
+    local bin="$1"
+    if [[ -f "$bin" ]]; then
+        local size_before=$(stat -c%s "$bin")
+        upx --best --lzma --quiet "$bin" > /dev/null
+        local size_after=$(stat -c%s "$bin")
+        local saved=$(( size_before - size_after ))
+        local percent=$(( (saved * 100) / size_before ))
+        
+        # Convert bytes to readable format
+        local size_before_fmt=$(numfmt --to=iec-i --suffix=B "$size_before")
+        local size_after_fmt=$(numfmt --to=iec-i --suffix=B "$size_after")
+        
+        log "Optimized $(basename "$bin"): ${size_before_fmt} -> ${size_after_fmt} (-${percent}%)"
     fi
 }
 
