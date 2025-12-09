@@ -118,6 +118,9 @@ kitchn stock ./assets/ingredients/waybar.ing
 
 # Cook (Sync) all installed ingredients
 kitchn cook
+
+# Clean (Remove) all ingredients from pantry
+kitchn pantry clean
 ```
 
 ### Logging

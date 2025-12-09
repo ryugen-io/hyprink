@@ -13,6 +13,9 @@
 - `pantry clean`: Removes ALL ingredients from the pantry.
 - `bake`: Pre-compiles configuration files (theme, layout, icons) into a binary format for faster subsequent runs.
 
+## Robustness
+- **Single Instance Locking**: Enforces that only one instance of `kitchn` can modify the pantry or cook at a time using `flock`. Prevents DB corruption and concurrency issues. The lock is automatically released by the kernel if the process crashes.
+
 ## Debug Mode (v0.2.0+)
 - **Flag**: `--debug` (Global flag).
 - **Behavior**: Always spawns a dedicated terminal window (prioritizing `rio`, then `alacritty`, `kitty`) to stream verbose debug logs.
