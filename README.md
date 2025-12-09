@@ -54,13 +54,13 @@ Both methods will:
 └── justfile             # Command runner
 ```
 
-### 🧠 Core Architecture
+###  Core Architecture
 
 -   **Logic**: `kitchn_lib` (Rust 2024) handles all processing, rendering, and logic.
 -   **Interface**: `kitchn_ffi` (Rust 2021) provides a stable C-ABI and auto-generates `kitchn.h` using `cbindgen`.
 -   **Storage**: Ingredients are ingested into a high-performance **binary database** (`pastry.bin`) located in `~/.local/share/kitchn/`, ensuring instant access and clean storage.
 
-### 🎨 The "Sweet Dracula" Standard
+###  The "Sweet Dracula" Standard
 
 Kitchn enforces a strict, vibrant Dracula palette across your system:
 
@@ -168,7 +168,7 @@ kitchn bake --debug
 
 ---
 
-## 🛡️ Robustness
+##  Robustness
 
 Kitchn enforces a **Single Instance Policy** using OS-level file locking (`flock`). This ensures that only one instance manages the pantry or system configuration at a time, preventing database corruption and conflicts.
 
