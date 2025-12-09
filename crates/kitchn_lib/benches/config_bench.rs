@@ -123,14 +123,15 @@ fn benchmark_config_serialization(c: &mut Criterion) {
     )
     .unwrap();
     fs::write(
-        config_dir.join("cookbook.toml"),
-        r#"
-    [meta]
-    version = "1.0"
-    authors = ["bench"]
-    "#,
+        config_dir.join("dictionary.toml"),
+        r##"
+    [presets.bench_ok]
+    level = "success"
+    msg = "benchmark passed"
+    "##,
     )
     .unwrap();
+
 
     let config = Cookbook::load_from_dir(config_dir).expect("Failed to create dummy config");
 
