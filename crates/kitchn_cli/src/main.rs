@@ -99,7 +99,7 @@ fn spawn_debug_viewer() -> Result<()> {
 
     // Detect terminal
     let terminal = env::var("TERMINAL").ok().or_else(|| {
-        let terminals = ["alacritty", "kitty", "rio", "gnome-terminal", "xterm"];
+        let terminals = ["rio", "alacritty", "kitty", "gnome-terminal", "xterm"];
         for term in terminals {
             if which::which(term).is_ok() {
                 return Some(term.to_string());
@@ -183,16 +183,30 @@ fn main() -> Result<()> {
 
     let logging_enabled = init_logging(cli.debug)?;
 
-    // Handle Standalone Debug Mode
+    // ALWAYS spawn debug viewer if debug flag is set
+    if cli.debug {
+        spawn_debug_viewer()?;
+        // Give the viewer a moment to start tailing
+        std::thread::sleep(std::time::Duration::from_millis(200));
+    }
+
+    // Handle Commands
     match cli.command {
         None => {
-            if cli.debug {
-                // kitchn --debug
-                spawn_debug_viewer()?;
-            } else {
-                // kitchn (no args) -> Print Help
-                use clap::CommandFactory;
-                Cli::command().print_help()?;
+            // If debug was set, we spawned the viewer. If not set, print help.
+            // If debug IS set, we just started the viewer and have nothing else to do, so we exit.
+            // But wait, if I run `kitchn --debug`, I expect it to KEEP running?
+            // `spawn_debug_viewer` spawns a DETACHED process (or separate process).
+            // If main exits, does the terminal close?
+            // "The child process is not killed when the Child handle is dropped."
+            // BUT if the new terminal is executing a command that finishes...
+            // `spawn_debug_viewer` runs `kitchn internal-watch`.
+            // `internal-watch` runs a loop.
+            // So the terminal should stay open.
+            
+            if !cli.debug {
+                 use clap::CommandFactory;
+                 Cli::command().print_help()?;
             }
             return Ok(());
         }
@@ -223,7 +237,7 @@ fn process_command(cmd: Commands) -> Result<()> {
             let config = Cookbook::load().context("Failed to load Kitchn cookbook")?;
             for pkg in installed {
                 log_msg("cook_start", &format!("simmering {}", pkg.meta.name));
-                processor::apply(&pkg, &config)?;
+                let _ = processor::apply(&pkg, &config)?;
             }
         }
         Commands::Wrap { input, output } => {
@@ -328,12 +342,21 @@ fn cook_db(db: &Pantry) -> Result<()> {
     }
 
     let count = ingredients.len();
+    let mut hook_failures = 0;
+
     for pkg in ingredients {
          log_msg("cook_start", &format!("simmering <primary>{}</primary>", pkg.meta.name));
-         processor::apply(pkg, &config)?;
+         if !processor::apply(pkg, &config)? {
+             hook_failures += 1;
+         }
     }
 
-    log_msg("cook_ok", &format!("cooked {} ingredients successfully", count));
+    if hook_failures > 0 {
+        log_msg("cook_ok", &format!("cooked {} ingredients successfully but {} hooks failed", count, hook_failures));
+    } else {
+        log_msg("cook_ok", &format!("cooked {} ingredients successfully", count));
+    }
+    
     Ok(())
 }
 

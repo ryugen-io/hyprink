@@ -4,7 +4,7 @@ use kitchn_lib::config::Cookbook;
 use kitchn_lib::logger;
 
 #[derive(Parser)]
-#[command(name = "corelog", version, about = "Kitchn Logging Tool")]
+#[command(name = "kitchn-log", version, about = "Kitchn Logging Tool")]
 struct Cli {
     /// Preset key from dictionary.toml
     preset: String,

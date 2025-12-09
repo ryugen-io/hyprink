@@ -143,6 +143,28 @@ kitchn-log boot_ok --app MyApp
 
 ---
 
+##  Debugging
+
+Kitchn includes a powerful debug mode to diagnose failing hooks or configuration issues.
+
+```bash
+kitchn --debug
+```
+
+This will spawn a **separate terminal window** (prioritizing `rio`, `alacritty`, `kitty`) that streams verbose logs, including:
+- Exact commands executed by hooks
+- Stdout/Stderr from hooks (even if empty)
+- Configuration files loaded
+- Tera template context keys
+
+You can also attach it to specific commands:
+```bash
+kitchn cook --debug
+kitchn bake --debug
+```
+
+---
+
 ##  Ingredients (`.ing`)
 
 An **Ingredient** is a single TOML file that teaches Kitchn how to theme a specific application. Ingredients are **ingested** into the `PastryDB` upon installation, meaning you don't need to keep the original files.

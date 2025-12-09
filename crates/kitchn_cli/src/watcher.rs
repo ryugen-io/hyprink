@@ -9,14 +9,21 @@ use colored::{ColoredString, Colorize};
 /// - DEBUG -> Blue
 /// - Other -> Normal
 pub fn colorize_line(line: &str) -> ColoredString {
-    if line.contains("ERROR") {
-        line.red()
-    } else if line.contains("WARN") {
+    let lower = line.to_lowercase();
+    
+    // Check content first for more specific coloring
+    if lower.contains("error") || lower.contains("fail") || lower.contains("stderr") {
+        line.red().bold()
+    } else if lower.contains("warn") {
         line.yellow()
-    } else if line.contains("INFO") {
-        line.cyan()
-    } else if line.contains("DEBUG") {
-        line.blue()
+    } else if lower.contains("success") || lower.contains("ok") || lower.contains("stdout") {
+        // "stdout" in debug logs usually means we are printing output, which is good info
+        line.green()
+    } else if lower.contains("info") {
+         line.cyan()
+    } else if line.contains("DEBUG") || line.contains("[DEBUG]") {
+        // Fallback for generic debug messages
+        line.blue().dimmed()
     } else {
         line.normal()
     }

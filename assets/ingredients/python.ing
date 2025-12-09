@@ -29,5 +29,5 @@ def get_color(name):
 class Log:
     @staticmethod
     def error(scope, msg):
-        subprocess.run(["corelog", "error", scope, msg])
+        subprocess.run(["kitchn-log", "error", scope, msg])
 """

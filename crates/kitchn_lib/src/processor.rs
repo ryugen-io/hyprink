@@ -12,7 +12,7 @@ use crate::logger;
 use std::collections::HashMap;
 use tera::{Value, to_value, try_get_value};
 
-pub fn apply(ingredient: &Ingredient, config: &Cookbook) -> Result<()> {
+pub fn apply(ingredient: &Ingredient, config: &Cookbook) -> Result<bool> {
     debug!("Applying ingredient: {}", ingredient.meta.name);
     let mut tera = Tera::default();
     tera.register_filter("hex_to_rgb", hex_to_rgb);
@@ -29,6 +29,12 @@ pub fn apply(ingredient: &Ingredient, config: &Cookbook) -> Result<()> {
         &config.icons.ascii
     };
     ctx.insert("icons", active_icons);
+
+    // Debug log available context keys
+    if log::log_enabled!(log::Level::Debug) {
+         // Context implements Debug, so we can just print it
+         debug!("Tera Context available for '{}': {:#?}", ingredient.meta.name, ctx);
+    }
 
     process_ingredient(ingredient, &mut tera, &mut ctx, config)
 }
@@ -54,7 +60,7 @@ fn process_ingredient(
     tera: &mut Tera,
     ctx: &mut TeraContext,
     config: &Cookbook,
-) -> Result<()> {
+) -> Result<bool> {
     debug!("Processing ingredient templates and hooks for: {}", pkg.meta.name);
     // Render Templates
     for tpl in &pkg.templates {
@@ -66,9 +72,12 @@ fn process_ingredient(
         render_and_write(&file.target, &file.content, tera, ctx)?;
     }
 
+    let mut hooks_success = true;
+
     // Run Hooks
     if let Some(cmd) = &pkg.hooks.reload {
-        debug!("Found reload hook: {}", cmd);
+        debug!("Found reload hook requested: '{}'", cmd);
+        
         // Retrieve presets or fall back to defaults
         let (run_lvl, run_scope, run_msg) = config.dictionary.presets.get("hook_run")
             .map(|p| (p.level.as_str(), p.scope.as_deref().unwrap_or("HOOK"), p.msg.as_str()))
@@ -84,38 +93,51 @@ fn process_ingredient(
 
         logger::log_to_terminal(config, run_lvl, run_scope, run_msg);
 
+        // Execute Hook
+        debug!("Executing hook via 'sh -c': {}", cmd);
+        let start = std::time::Instant::now();
+        
         let output = Command::new("sh")
             .arg("-c")
             .arg(cmd)
             .output()
             .context("Failed to execute hook")?;
+            
+        let duration = start.elapsed();
+        debug!("Hook completed in {:?} with exit code: {}", duration, output.status);
 
+        // Always log stdout/stderr to debug log
         if !output.stdout.is_empty() {
             let s = String::from_utf8_lossy(&output.stdout);
-            debug!("Hook stdout: {}", s.trim());
+            debug!("Hook stdout:\n{}", s.trim());
+            // Mirror to terminal info log if non-empty
             for line in s.lines() {
-                // For output lines, we stick with 'info' or maybe reuse run_lvl? 
-                // Let's stick with 'info' to keep it distinct from the header buffer
                 logger::log_to_terminal(config, "info", run_scope, line);
             }
+        } else {
+             debug!("Hook stdout: <empty>");
         }
 
         if !output.stderr.is_empty() {
             let s = String::from_utf8_lossy(&output.stderr);
-            debug!("Hook stderr: {}", s.trim());
+            debug!("Hook stderr:\n{}", s.trim());
+            // Mirror to terminal error log if non-empty
             for line in s.lines() {
                 logger::log_to_terminal(config, "error", run_scope, line);
             }
+        } else {
+             debug!("Hook stderr: <empty>");
         }
 
         if output.status.success() {
             logger::log_to_terminal(config, ok_lvl, ok_scope, ok_msg);
         } else {
             logger::log_to_terminal(config, err_lvl, err_scope, err_msg);
+            hooks_success = false;
         }
     }
 
-    Ok(())
+    Ok(hooks_success)
 }
 
 fn render_and_write(target: &str, content: &str, tera: &mut Tera, ctx: &TeraContext) -> Result<()> {

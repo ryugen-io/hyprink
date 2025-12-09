@@ -1,0 +1,12 @@
+[meta]
+name = "test_fail"
+description = "A test ingredient that fails"
+version = "0.1.0"
+authors = ["Test"]
+
+[hooks]
+reload = "echo 'this is stdout'; echo 'this is stderr' >&2; exit 1"
+
+[[templates]]
+target = "/tmp/test_fail.txt"
+content = "Hello {{ colors.bg }}"

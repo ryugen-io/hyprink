@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use log::debug;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ThemeConfig {
@@ -136,12 +137,18 @@ impl Cookbook {
             let mut reader = std::io::BufReader::new(file);
              // Decode using bincode
             match bincode::serde::decode_from_std_read::<Cookbook, _, _>(&mut reader, bincode::config::standard()) {
-                Ok(cfg) => return Ok(cfg),
-                Err(_) => {
-                    // If decode fails, ignore and fall back to TOML
+                Ok(cfg) => {
+                    debug!("Loaded configuration from binary cache: {:?}", bin_path);
+                    return Ok(cfg);
+                },
+                Err(e) => {
+                    debug!("Failed to decode binary cache (falling back to TOML): {}", e);
                 }
             }
+        } else {
+            debug!("Binary cache miss or stale (loading from TOMLs)");
         }
+
 
         // Fallback: Load from TOML files
         // Fallback: Load from TOML files
@@ -244,6 +251,7 @@ impl Cookbook {
     }
 
     fn load_with_includes<T: for<'a> Deserialize<'a>>(path: &Path) -> Result<T, ConfigError> {
+        debug!("Loading config file: {:?}", path);
         let value = Self::load_value_recursive(path)?;
         let config: T = value.try_into()?;
         Ok(config)

@@ -1,6 +1,6 @@
 # =============================================================================
 # Hyprcore Dictionary - Pre-defined log message presets
-# Usage: corelog preset <name> [SCOPE]
+# Usage: kitchn-log preset <name> [SCOPE]
 # Sourcing: include = ["path/to/other.toml"]
 #
 # Legend:
