@@ -276,10 +276,24 @@ install_from_source() {
     fi
 
     log "Building release binaries..."
-    if ! cargo build --release 2>&1; then
+    # Explicitly build only kitchn and kitchn-log binaries
+    if ! cargo build --release --bin kitchn --bin kitchn-log 2>&1; then
         die "Build failed"
     fi
-    success "Build complete"
+    success "Binaries build complete"
+
+    # Try building FFI library (optional, may fail on musl/alpine)
+    log "Attempting to build FFI library (optional)..."
+    if cargo build --release -p kitchn_ffi 2>&1; then
+        success "FFI library build complete"
+    else
+        warn "FFI build failed. Retrying with dynamic linking (for Musl/Alpine)..."
+        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p kitchn_ffi 2>&1; then
+             success "FFI library build complete (dynamic)"
+        else
+             warn "FFI library build failed (skipping). This is normal on strict static systems."
+        fi
+    fi
 
     # Compact binaries if UPX is available
     if command_exists upx; then

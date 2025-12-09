@@ -5,9 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.1] - 2025-12-09
 
-## [0.2.0] - 2025-XX-XX
+### Fixed
+- Fixed build failures on Musl/Alpine systems (Raspberry Pi compatibility) by making FFI library build optional/dynamic.
+- Fixed installation URLs in `README.md` to point to the correct `ryugen-io/kitchN` repository.
+- Updated `install.sh` to robustly handle `cdylib` crate types on static-by-default targets.
+
+## [0.2.0] - 2025-12-08
 
 ### Added
 - GitHub Releases with pre-built binaries for Linux x64 and ARM64
