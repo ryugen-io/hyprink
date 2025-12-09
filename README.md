@@ -1,4 +1,5 @@
 # Kitchn
+![Kitchn Header](assets/images/header.png)
 
 **Strict Corporate Design Enforcement for your System.**
 
@@ -56,6 +57,50 @@ Both methods will:
 
 ###  Core Architecture
 
+```mermaid
+graph TD
+    %% Nodes
+    CLI(kitchn_cli <br> Binary)
+    Log(kitchn_log <br> Binary)
+    Lib(kitchn_lib <br> Rust Crate)
+    FFI(kitchn_ffi <br> Rust Crate)
+    Headers(kitchn.h <br> C Header)
+    DB[(Pastry DB <br> Sled/KV)]
+    Config[Configuration <br> TOML]
+    
+    %% Relationships
+    CLI -->|Uses| Lib
+    CLI -->|Invokes| Log
+    CLI -->|Reads| Config
+    Lib -->|Manages| DB
+    Log -->|Uses| Config
+    FFI -->|Exposes| Lib
+    FFI -->|Generates| Headers
+    
+    %% Subgraphs for logic
+    subgraph Core Logic
+        Lib
+        DB
+    end
+    
+    subgraph Interfaces
+        CLI
+        FFI
+        Headers
+    end
+    
+    subgraph Support
+        Log
+        Config
+    end
+    
+    %% Styling
+    style CLI fill:#f9f,stroke:#333,stroke-width:2px,color:#000
+    style Lib fill:#bbf,stroke:#333,stroke-width:4px,color:#000
+    style FFI fill:#bfb,stroke:#333,stroke-width:2px,color:#000
+    style DB fill:#ff9,stroke:#333,stroke-width:1px,color:#000
+    style Log fill:#fbb,stroke:#333,stroke-width:1px,color:#000
+```
 -   **Logic**: `kitchn_lib` (Rust 2024) handles all processing, rendering, and logic.
 -   **Interface**: `kitchn_ffi` (Rust 2021) provides a stable C-ABI and auto-generates `kitchn.h` using `cbindgen`.
 -   **Storage**: Ingredients are ingested into a high-performance **binary database** (`pastry.bin`) located in `~/.local/share/kitchn/`, ensuring instant access and clean storage.
