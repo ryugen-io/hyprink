@@ -24,20 +24,35 @@ With the new **C-ABI Compatible Core**, Kitchn is no longer just a CLI tool—it
 
 ##  Installation
 
-### Option A: Using Just (Recommended)
+### Option A: One-liner (Recommended)
 ```bash
+curl -fsSL https://raw.githubusercontent.com/ryugen/kitchn/master/install.sh | bash
+```
+
+### Option B: Specific Version
+```bash
+curl -fsSL https://raw.githubusercontent.com/ryugen/kitchn/master/install.sh | bash -s -- v0.2.0
+```
+
+### Option C: From Source
+```bash
+git clone https://github.com/ryugen/kitchn.git
+cd kitchn
 just install
 ```
 
-### Option B: Manual
+### Option D: Manual Download
+Download the latest release from the [Releases page](https://github.com/ryugen/kitchn/releases), extract and run:
 ```bash
+tar xzf kitchn-v*.tar.gz
+cd kitchn-v*/
 ./install.sh
 ```
 
-Both methods will:
+All methods will:
 1.  Create `~/.config/kitchn/` with default configurations.
-2.  Build release binaries (`kitchn`, `kitchn-log`).
-3.  Install them to `~/.local/bin/`.
+2.  Install binaries (`kitchn`, `kitchn-log`) to `~/.local/bin/`.
+3.  Install FFI library (`libkitchn_ffi.so`) to `~/.local/lib/kitchn/`.
 
 > [!IMPORTANT]
 > Ensure `~/.local/bin` is in your `$PATH`.
@@ -50,7 +65,7 @@ Get up and running in 3 steps:
 
 ```bash
 # 1. Install Kitchn
-just install
+curl -fsSL https://raw.githubusercontent.com/ryugen/kitchn/master/install.sh | bash
 
 # 2. Stock an example ingredient
 kitchn stock ./assets/ingredients/waybar.ing
