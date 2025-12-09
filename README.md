@@ -117,6 +117,10 @@ Kitchn enforces a strict, vibrant Dracula palette across your system:
 | ![#f8f8f2](https://placehold.co/15x15/f8f8f2/f8f8f2.png) **Foreground** | `#f8f8f2` | Text | Main content text |
 | ![#bd93f9](https://placehold.co/15x15/bd93f9/bd93f9.png) **Purple** | `#bd93f9` | Primary | Accents, Borders, Keywords |
 | ![#ff79c6](https://placehold.co/15x15/ff79c6/ff79c6.png) **Pink** | `#ff79c6` | Secondary | Highlights, Strings, Urgent |
+| ![#50fa7b](https://placehold.co/15x15/50fa7b/50fa7b.png) **Green** | `#50fa7b` | Success | Validations, ok, diff(+)|
+| ![#ff5555](https://placehold.co/15x15/ff5555/ff5555.png) **Red** | `#ff5555` | Error | Failures, deletions, diff(-) |
+| ![#ffb86c](https://placehold.co/15x15/ffb86c/ffb86c.png) **Orange** | `#ffb86c` | Warning | Constants, Escapes, Notes |
+| ![#8be9fd](https://placehold.co/15x15/8be9fd/8be9fd.png) **Cyan** | `#8be9fd` | Info | Metadata, Types, Links |
 
 ---
 

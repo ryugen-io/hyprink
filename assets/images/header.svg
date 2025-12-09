@@ -1,28 +1,14 @@
-<svg width="100%" height="100%" viewBox="0 0 300 120" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
+<svg width="100%" height="100%" viewBox="0 0 192 72" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMinYMin meet">
   <defs>
     <linearGradient id="sweet_dracula" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#BD93F9;stop-opacity:1" /> <!-- Purple -->
-      <stop offset="16%" style="stop-color:#FF79C6;stop-opacity:1" /> <!-- Pink -->
-      <stop offset="32%" style="stop-color:#FF5555;stop-opacity:1" /> <!-- Red -->
-      <stop offset="48%" style="stop-color:#FFB86C;stop-opacity:1" /> <!-- Orange -->
-      <stop offset="64%" style="stop-color:#50FA7B;stop-opacity:1" /> <!-- Green -->
-      <stop offset="80%" style="stop-color:#8BE9FD;stop-opacity:1" /> <!-- Cyan -->
-      <stop offset="100%" style="stop-color:#BD93F9;stop-opacity:1" /> <!-- Purple Loop -->
+      <stop offset="0%" style="stop-color:#BD93F9;stop-opacity:1" />
+      <stop offset="16%" style="stop-color:#FF79C6;stop-opacity:1" />
+      <stop offset="32%" style="stop-color:#FF5555;stop-opacity:1" />
+      <stop offset="48%" style="stop-color:#FFB86C;stop-opacity:1" />
+      <stop offset="64%" style="stop-color:#50FA7B;stop-opacity:1" />
+      <stop offset="80%" style="stop-color:#8BE9FD;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#BD93F9;stop-opacity:1" />
     </linearGradient>
-  </defs>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fira+Code&amp;display=swap');
-    .ascii-text {
-      font-family: 'Fira Code', 'Courier New', monospace;
-      font-size: 14px;
-      font-weight: bold;
-      fill: url(#sweet_dracula);
-      white-space: pre;
-    }
-  </style>
-  <text x="10" y="25" class="ascii-text">
-    <tspan x="10" dy="1.1em">╻┏ ╻╺┳╸┏━╸╻ ╻┏┓╻</tspan>
-    <tspan x="10" dy="1.1em">┣┻┓┃ ┃ ┃  ┣━┫┃┗┫</tspan>
-    <tspan x="10" dy="1.1em">╹ ╹╹ ╹ ┗━╸╹ ╹╹ ╹</tspan>
-  </text>
+</defs>
+  <path d="M 4.0,12.0 L 8.0,12.0 L 8.0,24.0 L 4.0,24.0 Z M 16.0,12.0 L 20.0,12.0 L 20.0,24.0 L 16.0,24.0 Z M 18.0,10.0 L 24.0,10.0 L 24.0,14.0 L 18.0,14.0 Z M 40.0,12.0 L 44.0,12.0 L 44.0,24.0 L 40.0,24.0 Z M 54.0,10.0 L 60.0,10.0 L 60.0,14.0 L 54.0,14.0 Z M 64.0,12.0 L 68.0,12.0 L 68.0,24.0 L 64.0,24.0 Z M 60,10.0 L 72,10.0 L 72,14.0 L 60,14.0 Z M 72,10.0 L 78.0,10.0 L 78.0,14.0 L 72,14.0 Z M 88.0,12.0 L 92.0,12.0 L 92.0,24.0 L 88.0,24.0 Z M 90.0,10.0 L 96.0,10.0 L 96.0,14.0 L 90.0,14.0 Z M 96,10.0 L 108,10.0 L 108,14.0 L 96,14.0 Z M 108,10.0 L 114.0,10.0 L 114.0,14.0 L 108,14.0 Z M 124.0,12.0 L 128.0,12.0 L 128.0,24.0 L 124.0,24.0 Z M 148.0,12.0 L 152.0,12.0 L 152.0,24.0 L 148.0,24.0 Z M 160.0,12.0 L 164.0,12.0 L 164.0,24.0 L 160.0,24.0 Z M 162.0,10.0 L 168.0,10.0 L 168.0,14.0 L 162.0,14.0 Z M 172.0,12.0 L 176.0,12.0 L 176.0,24.0 L 172.0,24.0 Z M 168,10.0 L 174.0,10.0 L 174.0,14.0 L 168,14.0 Z M 184.0,12.0 L 188.0,12.0 L 188.0,24.0 L 184.0,24.0 Z M 4.0,24 L 8.0,24 L 8.0,48 L 4.0,48 Z M 6.0,34.0 L 12.0,34.0 L 12.0,38.0 L 6.0,38.0 Z M 16.0,24 L 20.0,24 L 20.0,36.0 L 16.0,36.0 Z M 12,34.0 L 24,34.0 L 24,38.0 L 12,38.0 Z M 28.0,36.0 L 32.0,36.0 L 32.0,48.0 L 28.0,48.0 Z M 24,34.0 L 30.0,34.0 L 30.0,38.0 L 24,38.0 Z M 40.0,24 L 44.0,24 L 44.0,48 L 40.0,48 Z M 64.0,24 L 68.0,24 L 68.0,48 L 64.0,48 Z M 88.0,24 L 92.0,24 L 92.0,48 L 88.0,48 Z M 124.0,24 L 128.0,24 L 128.0,48 L 124.0,48 Z M 126.0,34.0 L 132.0,34.0 L 132.0,38.0 L 126.0,38.0 Z M 132,34.0 L 144,34.0 L 144,38.0 L 132,38.0 Z M 148.0,24 L 152.0,24 L 152.0,48 L 148.0,48 Z M 144,34.0 L 150.0,34.0 L 150.0,38.0 L 144,38.0 Z M 160.0,24 L 164.0,24 L 164.0,48 L 160.0,48 Z M 172.0,24 L 176.0,24 L 176.0,36.0 L 172.0,36.0 Z M 174.0,34.0 L 180.0,34.0 L 180.0,38.0 L 174.0,38.0 Z M 184.0,24 L 188.0,24 L 188.0,48 L 184.0,48 Z M 180,34.0 L 186.0,34.0 L 186.0,38.0 L 180,38.0 Z M 4.0,48 L 8.0,48 L 8.0,60.0 L 4.0,60.0 Z M 28.0,48 L 32.0,48 L 32.0,60.0 L 28.0,60.0 Z M 40.0,48 L 44.0,48 L 44.0,60.0 L 40.0,60.0 Z M 64.0,48 L 68.0,48 L 68.0,60.0 L 64.0,60.0 Z M 88.0,48 L 92.0,48 L 92.0,60.0 L 88.0,60.0 Z M 90.0,58.0 L 96.0,58.0 L 96.0,62.0 L 90.0,62.0 Z M 96,58.0 L 108,58.0 L 108,62.0 L 96,62.0 Z M 108,58.0 L 114.0,58.0 L 114.0,62.0 L 108,62.0 Z M 124.0,48 L 128.0,48 L 128.0,60.0 L 124.0,60.0 Z M 148.0,48 L 152.0,48 L 152.0,60.0 L 148.0,60.0 Z M 160.0,48 L 164.0,48 L 164.0,60.0 L 160.0,60.0 Z M 184.0,48 L 188.0,48 L 188.0,60.0 L 184.0,60.0 Z" fill="url(#sweet_dracula)" stroke="none" />
 </svg>
