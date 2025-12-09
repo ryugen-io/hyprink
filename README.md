@@ -1,5 +1,6 @@
 # Kitchn
-![Kitchn Header](assets/images/header.png)
+![Kitchn Header](assets/images/header.svg)
+
 
 **Strict Corporate Design Enforcement for your System.**
 
