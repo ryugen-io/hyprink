@@ -25,7 +25,7 @@ lint:
 
 # Run kitchn-log example
 run-log preset="test_pass":
-    ./target/release/kitchn-log {{preset}}
+    ./target/release/k-log {{preset}}
 
 # Run kitchn cook (sync)
 cook:
@@ -100,7 +100,7 @@ debug:
 compact: build
     @echo "Compacting binaries..."
     @upx --best --lzma target/release/kitchn
-    @upx --best --lzma target/release/kitchn-log
+    @upx --best --lzma target/release/k-log
 
 # Package release tarball (for CI/CD)
 # Usage: just package <target> <name>
@@ -129,12 +129,12 @@ package target name:
 
     # Binaries
     cp "${RELEASE_DIR}/kitchn" "${DIST}/${PKG}/bin/"
-    cp "${RELEASE_DIR}/kitchn-log" "${DIST}/${PKG}/bin/"
+    cp "${RELEASE_DIR}/k-log" "${DIST}/${PKG}/bin/"
     chmod +x "${DIST}/${PKG}/bin/"*
 
     # FFI library (optional)
-    [[ -f "${RELEASE_DIR}/libkitchn_ffi.so" ]] && \
-        cp "${RELEASE_DIR}/libkitchn_ffi.so" "${DIST}/${PKG}/lib/" || true
+    [[ -f "${RELEASE_DIR}/libk_ffi.so" ]] && \
+        cp "${RELEASE_DIR}/libk_ffi.so" "${DIST}/${PKG}/lib/" || true
 
     # C header
     [[ -f "include/kitchn.h" ]] && cp "include/kitchn.h" "${DIST}/${PKG}/include/"

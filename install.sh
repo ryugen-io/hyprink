@@ -276,19 +276,19 @@ install_from_source() {
     fi
 
     log "Building release binaries..."
-    # Explicitly build only kitchn and kitchn-log binaries
-    if ! cargo build --release --bin kitchn --bin kitchn-log 2>&1; then
+    # Explicitly build only kitchn and k-log binaries
+    if ! cargo build --release --bin kitchn --bin k-log 2>&1; then
         die "Build failed"
     fi
     success "Binaries build complete"
 
     # Try building FFI library (optional, may fail on musl/alpine)
     log "Attempting to build FFI library (optional)..."
-    if cargo build --release -p kitchn_ffi 2>&1; then
+    if cargo build --release -p k-ffi 2>&1; then
         success "FFI library build complete"
     else
         warn "FFI build failed. Retrying with dynamic linking (for Musl/Alpine)..."
-        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p kitchn_ffi 2>&1; then
+        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p k-ffi 2>&1; then
              success "FFI library build complete (dynamic)"
         else
              warn "FFI library build failed (skipping). This is normal on strict static systems."
@@ -299,19 +299,19 @@ install_from_source() {
     if command_exists upx; then
         log "Compacting binaries with UPX..."
         compact_binary "target/release/kitchn"
-        compact_binary "target/release/kitchn-log"
+        compact_binary "target/release/k-log"
     fi
 
     # Install binaries
-    for bin in kitchn kitchn-log; do
+    for bin in kitchn k-log; do
         local src="target/release/${bin}"
         [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
     done
 
     # Install FFI library if it exists
-    if [[ -f "target/release/libkitchn_ffi.so" ]]; then
+    if [[ -f "target/release/libk_ffi.so" ]]; then
         create_dir "$LIB_DIR"
-        cp "target/release/libkitchn_ffi.so" "$LIB_DIR/"
+        cp "target/release/libk_ffi.so" "$LIB_DIR/"
     fi
 
     # Install C header if it exists
@@ -325,16 +325,16 @@ install_from_package() {
     local pkg_dir="$1"
 
     # Install binaries
-    for bin in kitchn kitchn-log; do
+    for bin in kitchn k-log; do
         local src="${pkg_dir}/bin/${bin}"
         [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
         chmod +x "${INSTALL_DIR}/${bin}"
     done
 
     # Install FFI library if it exists
-    if [[ -f "${pkg_dir}/lib/libkitchn_ffi.so" ]]; then
+    if [[ -f "${pkg_dir}/lib/libk_ffi.so" ]]; then
         create_dir "$LIB_DIR"
-        cp "${pkg_dir}/lib/libkitchn_ffi.so" "$LIB_DIR/"
+        cp "${pkg_dir}/lib/libk_ffi.so" "$LIB_DIR/"
     fi
 
     # Install C header if it exists

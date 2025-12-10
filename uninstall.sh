@@ -74,7 +74,8 @@ main() {
     log "Starting Hyprcore uninstall"
     
     # Remove binaries
-    remove_if_exists "${INSTALL_DIR}/kitchn-log" "kitchn-log binary"
+    remove_if_exists "${INSTALL_DIR}/k-log" "k-log binary"
+    remove_if_exists "${INSTALL_DIR}/kitchn" "kitchn binary"
     remove_if_exists "${INSTALL_DIR}/hyprcore" "hyprcore binary"
     
     # Remove directories
