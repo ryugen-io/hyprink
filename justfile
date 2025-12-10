@@ -58,13 +58,13 @@ bench:
     cargo bench
     ../utils/kitchn/bench.sh
 
-# Run benchmarks for kitchn_lib only
+# Run benchmarks for k-lib only
 bench-lib:
-    cargo bench -p kitchn_lib
+    cargo bench -p k-lib
 
-# Run tests for kitchn_lib only
+# Run tests for k-lib only
 test-lib:
-    cargo test -p kitchn_lib
+    cargo test -p k-lib
 
 # Run C++ FFI Example
 example-cpp: build

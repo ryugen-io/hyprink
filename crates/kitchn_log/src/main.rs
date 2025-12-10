@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use kitchn_lib::config::Cookbook;
-use kitchn_lib::logger;
+use k_lib::config::Cookbook;
+use k_lib::logger;
 
 #[derive(Parser)]
 #[command(name = "kitchn-log", version, about = "Kitchn Logging Tool")]

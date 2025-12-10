@@ -4,8 +4,8 @@ use std::os::raw::{c_char, c_int};
 use std::path::Path;
 use std::ptr;
 
-use kitchn_lib::config::Cookbook;
-use kitchn_lib::{ingredient, logger, packager, processor};
+use k_lib::config::Cookbook;
+use k_lib::{ingredient, logger, packager, processor};
 
 /// Opaque context pointer (wraps Cookbook with error storage)
 pub struct KitchnContext {

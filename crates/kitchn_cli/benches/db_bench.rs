@@ -1,6 +1,6 @@
 use criterion::{criterion_group, criterion_main, BatchSize, Criterion};
-use kitchn_lib::db::Pantry;
-use kitchn_lib::ingredient::{Ingredient, IngredientManifest};
+use k_lib::db::Pantry;
+use k_lib::ingredient::{Ingredient, IngredientManifest};
 use tempfile::NamedTempFile;
 
 fn create_dummy_ingredient(id: usize) -> Ingredient {

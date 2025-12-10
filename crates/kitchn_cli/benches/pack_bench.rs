@@ -1,5 +1,5 @@
 use criterion::{criterion_group, criterion_main, Criterion};
-use kitchn_lib::packager::{pack, unpack};
+use k_lib::packager::{pack, unpack};
 use std::fs;
 use tempfile::tempdir;
 

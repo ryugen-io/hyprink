@@ -1,9 +1,9 @@
-use kitchn_lib::config::{
+use k_lib::config::{
     Cookbook, DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, StructureConfig,
     TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
 };
-use kitchn_lib::ingredient::{Hooks, Ingredient, IngredientManifest};
-use kitchn_lib::processor;
+use k_lib::ingredient::{Hooks, Ingredient, IngredientManifest};
+use k_lib::processor;
 use std::collections::HashMap;
 
 fn mock_cookbook() -> Cookbook {

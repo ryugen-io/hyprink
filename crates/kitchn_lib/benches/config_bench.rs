@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use kitchn_lib::config::Cookbook;
+use k_lib::config::Cookbook;
 use std::fs;
 use tempfile::tempdir;
 
@@ -131,7 +131,6 @@ fn benchmark_config_serialization(c: &mut Criterion) {
     "##,
     )
     .unwrap();
-
 
     let config = Cookbook::load_from_dir(config_dir).expect("Failed to create dummy config");
 

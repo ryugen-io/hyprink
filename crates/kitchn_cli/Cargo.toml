@@ -1,7 +1,7 @@
 [package]
 name = "kitchn"
 version = "0.2.1"
-edition = "2021"
+edition = "2024"
 
 [[bin]]
 name = "kitchn"
@@ -10,7 +10,7 @@ path = "src/main.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-kitchn_lib = { path = "../kitchn_lib" }
+k-lib = { path = "../kitchn_lib" }
 clap = { version = "4.5.23", features = ["derive"] }
 tera = "1.20.1"
 serde = { version = "1.0.216", features = ["derive"] }
@@ -19,10 +19,13 @@ anyhow = "1.0.100"
 directories = "5.0.1"
 colored = "2.2.0"
 zip = "2.2.2"
-log = "0.4"
-simplelog = "0.12"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing-appender = "0.2"
+tracing-log = "0.2"
 which = "6.0"
 libc = "0.2.178"
+chrono = "0.4"
 
 [dev-dependencies]
 tempfile = "3.14.0"

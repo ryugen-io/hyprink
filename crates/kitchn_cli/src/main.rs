@@ -1,36 +1,61 @@
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result, anyhow};
 use clap::{Parser, Subcommand};
 use directories::ProjectDirs;
-use kitchn_lib::config::Cookbook;
-use kitchn_lib::db::Pantry;
-use kitchn_lib::{ingredient::Ingredient, packager, processor};
-use log::{debug, warn};
-use simplelog::{Config, LevelFilter, WriteLogger};
+use k_lib::config::Cookbook;
+use k_lib::db::Pantry;
+use k_lib::logger;
+use k_lib::{ingredient::Ingredient, packager, processor};
+use tracing::{debug, warn};
+use tracing_subscriber::{EnvFilter, Layer, prelude::*};
 
+use colored::Colorize;
 use std::env;
 use std::fs::{self, File};
+use std::io::{BufRead, BufReader, Write};
+use std::os::unix::net::{UnixListener, UnixStream};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
+use std::sync::Mutex;
+use std::time::Duration;
 
-mod watcher;
+// mod watcher; // Removed as we use sender-side coloring
 
-/// Log via kitchn-log preset
-fn log(preset: &str) {
-    let _ = Command::new("kitchn-log")
-        .arg("--app")
-        .arg("kitchn")
-        .arg(preset)
-        .status();
+/// Helper to log using k_lib::logger directly
+fn log(config: &Cookbook, preset_key: &str) {
+    if let Some(preset) = config.dictionary.presets.get(preset_key)
+        && let Some(scope) = &preset.scope
+    {
+        // 1. User Facing Log
+        logger::log_to_terminal(config, &preset.level, scope, &preset.msg);
+
+        // 2. Debug Watcher is now handled via tracing-log capturing the logger::log_to_terminal internal log calls if they emit events,
+        // OR capturing log::* calls from k_lib.
+
+        // RE-ENABLED MANUAL TRACE to ensure high level semantic logs are visible
+        tracing::info!(scope = scope, message = &preset.msg);
+
+        if config.layout.logging.write_by_default {
+            let _ = logger::log_to_file(config, &preset.level, scope, &preset.msg, None);
+        }
+    }
 }
 
-/// Log via kitchn-log preset with custom message
-fn log_msg(preset: &str, msg: &str) {
-    let _ = Command::new("kitchn-log")
-        .arg("--app")
-        .arg("kitchn")
-        .arg(preset)
-        .arg(msg)
-        .status();
+/// Helper to log with custom msg
+fn log_msg(config: &Cookbook, preset_key: &str, msg_override: &str) {
+    if let Some(preset) = config.dictionary.presets.get(preset_key)
+        && let Some(scope) = &preset.scope
+    {
+        // 1. User Facing Log
+        logger::log_to_terminal(config, &preset.level, scope, msg_override);
+
+        // 2. Debug Watcher Log (Broadcast)
+        // RE-ENABLED MANUAL TRACE to ensure high level semantic logs are visible
+        tracing::info!(scope = scope, message = msg_override);
+
+        if config.layout.logging.write_by_default {
+            let _ = logger::log_to_file(config, &preset.level, scope, msg_override, None);
+        }
+    }
 }
 
 #[derive(Parser)]
@@ -65,9 +90,9 @@ enum Commands {
     },
     /// Bake cookbook into binary pastry for faster startup
     Bake,
-    /// Internal command to watch logs with colors (Hidden)
+    /// Internal command to watch logs via socket (Hidden)
     #[command(hide = true)]
-    InternalWatch { path: PathBuf },
+    InternalWatch { socket_path: PathBuf },
 }
 
 #[derive(Subcommand, Debug)]
@@ -76,35 +101,179 @@ enum PantryCommands {
     Clean,
 }
 
-fn get_log_path() -> PathBuf {
-    env::temp_dir().join("kitchn-debug.log")
+// --- Socket Logging Implementation ---
+
+fn get_socket_path() -> PathBuf {
+    let runtime_dir = env::var("XDG_RUNTIME_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| env::temp_dir());
+    runtime_dir.join("kitchn-debug.sock")
 }
 
-fn init_logging(force_enable: bool) -> Result<bool> {
-    let log_path = get_log_path();
-    let should_log = force_enable || log_path.exists();
+struct SocketSubscriberLayer {
+    socket: Mutex<Option<UnixStream>>,
+}
 
-    if should_log {
-        // Create file if it doesn't exist, open for append if it does
-        let file = fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&log_path)
-            .context("Failed to open debug log file")?;
-
-        // Initialize logger
-        let _ = WriteLogger::init(LevelFilter::Debug, Config::default(), file);
-        debug!("Logging initialized to {:?}", log_path);
+impl SocketSubscriberLayer {
+    fn new(socket_path: &Path) -> Self {
+        // Try to connect, if fail, we just won't log to socket
+        let socket = UnixStream::connect(socket_path).ok();
+        Self {
+            socket: Mutex::new(socket),
+        }
     }
-    Ok(should_log)
+}
+
+impl<S> Layer<S> for SocketSubscriberLayer
+where
+    S: tracing::Subscriber,
+{
+    fn on_event(
+        &self,
+        event: &tracing::Event<'_>,
+        _ctx: tracing_subscriber::layer::Context<'_, S>,
+    ) {
+        // Only lock if we have a socket.
+        // But we need to lock to check if we have one.
+        if let Ok(mut guard) = self.socket.lock()
+            && let Some(stream) = guard.as_mut()
+        {
+            // 1. Get Metadata (Level)
+            let metadata = event.metadata();
+            let level_color = match *metadata.level() {
+                tracing::Level::ERROR => "ERROR".red(),
+                tracing::Level::WARN => "WARN".yellow(),
+                tracing::Level::INFO => "INFO".green(),
+                tracing::Level::DEBUG => "DEBUG".blue(),
+                tracing::Level::TRACE => "TRACE".magenta(),
+            };
+
+            // 2. Timestamp
+            let timestamp = chrono::Local::now().format("%H:%M:%S").to_string().dimmed();
+
+            // 3. Visitor with Scope support
+            struct MessageVisitor {
+                message: String,
+                scope: Option<String>,
+            }
+
+            impl tracing::field::Visit for MessageVisitor {
+                fn record_debug(
+                    &mut self,
+                    field: &tracing::field::Field,
+                    value: &dyn std::fmt::Debug,
+                ) {
+                    if field.name() == "message" {
+                        self.message.push_str(&format!("{:?}", value));
+                    }
+                }
+                fn record_str(&mut self, field: &tracing::field::Field, value: &str) {
+                    if field.name() == "message" {
+                        self.message.push_str(value);
+                    } else if field.name() == "scope" {
+                        self.scope = Some(value.to_string());
+                    }
+                }
+            }
+
+            let mut visitor = MessageVisitor {
+                message: String::new(),
+                scope: None,
+            };
+            event.record(&mut visitor);
+
+            if visitor.message.is_empty() {
+                return;
+            }
+
+            // 4. Format: TIME [LEVEL] [SCOPE] Message
+            let scope_part = if let Some(s) = visitor.scope {
+                format!("[{}] ", s)
+            } else {
+                String::new()
+            };
+
+            // Strip tags for clean debug output
+            let clean_message = strip_tags(&visitor.message);
+
+            let final_msg = format!(
+                "{} [{}] {}{}\n",
+                timestamp, level_color, scope_part, clean_message
+            );
+
+            if stream.write_all(final_msg.as_bytes()).is_err() {
+                *guard = None;
+            }
+        }
+    }
+}
+
+// Helper to strip XML-like tags from log messages
+fn strip_tags(msg: &str) -> String {
+    let mut result = String::new();
+    let mut i = 0;
+    while i < msg.len() {
+        if let Some(start) = msg[i..].find('<') {
+            result.push_str(&msg[i..i + start]);
+            i += start;
+            if let Some(end) = msg[i..].find('>') {
+                i += end + 1;
+            } else {
+                result.push('<');
+                i += 1;
+            }
+        } else {
+            result.push_str(&msg[i..]);
+            break;
+        }
+    }
+    result
+}
+
+fn init_logging(force_debug: bool) -> Result<bool> {
+    // Basic EnvFilter
+    // Init LogTracer to bridge log crate events to tracing
+    // Ignore error if already initialized (for tests/multiple calls safety)
+    let _ = tracing_log::LogTracer::init();
+
+    let socket_path = get_socket_path();
+    let watcher_active = socket_path.exists();
+
+    // Enable debug if flag is passed OR if the debug watcher is active/socket exists
+    let enable_debug = force_debug || watcher_active;
+
+    let env_filter = if enable_debug {
+        // Force debug level, ignoring environment variables
+        EnvFilter::new("debug")
+    } else {
+        // Use environment variable RUST_LOG, defaulting to info
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"))
+    };
+
+    let registry = tracing_subscriber::registry().with(env_filter);
+
+    // Always attempt to connect to socket if it exists/is valid.
+    let layer = SocketSubscriberLayer::new(&socket_path);
+    // We use set_global_default instead of init() to avoid panics if called multiple times,
+    // and because we manually initialized LogTracer above.
+    // init() would try to init LogTracer again if the feature was enabled, causing a panic/error.
+    let _ = tracing::subscriber::set_global_default(registry.with(layer));
+
+    Ok(true)
 }
 
 fn spawn_debug_viewer() -> Result<()> {
-    let log_path = get_log_path();
+    let socket_path = get_socket_path();
 
-    // Reset log file for fresh run if we are spawning the viewer explicitly
-    // This gives a clean state for "Starting debug mode"
-    File::create(&log_path).context("Failed to reset log file")?;
+    // Check if socket connectable
+    if UnixStream::connect(&socket_path).is_ok() {
+        return Ok(());
+    }
+
+    // Remove stale socket file
+    if socket_path.exists() {
+        let _ = fs::remove_file(&socket_path);
+    }
 
     // Detect terminal
     let terminal = env::var("TERMINAL").ok().or_else(|| {
@@ -119,104 +288,109 @@ fn spawn_debug_viewer() -> Result<()> {
 
     if let Some(term) = terminal {
         debug!("Spawning debug viewer with: {}", term);
-
         let self_exe = env::current_exe().context("Failed to get current executable path")?;
 
-        // Spawn terminal running our internal watch command
+        // Spawn terminal running internal-watch
         let _ = Command::new(&term)
-            .arg("-e") // Most terminals support -e
+            .arg("-e")
             .arg(&self_exe)
             .arg("internal-watch")
-            .arg(&log_path)
+            .arg(&socket_path)
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .spawn()
             .context("Failed to spawn debug terminal")?;
 
         println!("Debug Mode Started.");
-        println!("Verbose logs are streaming to the new terminal window.");
-        println!("Run 'kitchn' commands normally, and they will appear there.");
+        println!("Socket: {:?}", socket_path);
+
+        // Wait for socket to appear (max 2s)
+        let start = std::time::Instant::now();
+        while !socket_path.exists() && start.elapsed() < Duration::from_secs(2) {
+            std::thread::sleep(Duration::from_millis(50));
+        }
+        std::thread::sleep(Duration::from_millis(100)); // Grace period for bind
     } else {
         warn!("No supported terminal emulator found.");
-        println!("Logs are being written to: {:?}", log_path);
-        println!("You can tail them manually: tail -f {:?}", log_path);
+        println!("Cannot spawn debug terminal.");
     }
 
     Ok(())
 }
 
-fn start_colored_watch(path: &Path) -> Result<()> {
-    use colored::Colorize;
-    use std::io::{BufRead, BufReader, Seek, SeekFrom};
-    use std::time::Duration;
+fn run_socket_watcher(socket_path: &Path) -> Result<()> {
+    // Note: colors are provided by the sender now (like kitchnsink)
+    // receiver is dumb and just prints.
 
-    println!("{}", "Kitchn Debug Watcher".bold().underline());
-    println!("Tailing: {:?}\n", path);
-
-    let mut file = File::open(path)?;
-    let mut pos = 0;
-
-    loop {
-        // Check if file has been truncated
-        if let Ok(metadata) = fs::metadata(path) {
-            if metadata.len() < pos {
-                pos = 0;
-                file = File::open(path)?;
-                println!("{}", "-- LOG TRUNCATED --".yellow());
-            }
-        }
-
-        file.seek(SeekFrom::Start(pos))?;
-        let mut reader = BufReader::new(&file);
-
-        let mut line = String::new();
-        while reader.read_line(&mut line)? > 0 {
-            let colored_line = watcher::colorize_line(&line);
-            print!("{}", colored_line);
-
-            pos += line.len() as u64;
-            line.clear();
-        }
-
-        std::thread::sleep(Duration::from_millis(100));
+    if socket_path.exists() {
+        let _ = fs::remove_file(socket_path);
     }
+
+    let listener = UnixListener::bind(socket_path).context("Failed to bind debug socket")?;
+
+    println!(
+        "{}",
+        "Kitchn Debug Watcher (Socket Mode)".bold().underline()
+    );
+    println!("Listening on: {:?}\n", socket_path);
+
+    // Accept connections
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                // Handle client in thread to allow concurrent clients
+                std::thread::spawn(move || {
+                    let reader = BufReader::new(stream);
+                    for line in reader.lines() {
+                        if let Ok(l) = line {
+                            // Dumb print: just output what we get
+                            // kitchnsink doesn't use println! because msg includes newline?
+                            // sender sends with \n.
+                            println!("{}", l);
+                        } else {
+                            break;
+                        }
+                    }
+                });
+            }
+            Err(e) => eprintln!("Accept error: {}", e),
+        }
+    }
+
+    Ok(())
 }
 
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // Check if we are running the internal watcher BEFORE init logging to avoid lock contention or self-logging loops
-    if let Some(Commands::InternalWatch { path }) = &cli.command {
-        return start_colored_watch(path);
+    // 1. Handle Internal Watcher (Server Mode)
+    if let Some(Commands::InternalWatch { socket_path }) = &cli.command {
+        return run_socket_watcher(socket_path);
     }
 
-    // Acquire global lock (except for InternalWatch which is passive)
-    let _lock_file = if let Some(Commands::InternalWatch { .. }) = &cli.command {
-        None
-    } else {
-        match acquire_lock() {
-            Ok(f) => Some(f),
-            Err(e) => {
-                warn!("Failed to acquire global lock: {}", e);
-                eprintln!("Error: Another instance of kitchn is already running.");
-                return Ok(());
-            }
-        }
-    };
-
-    let logging_enabled = init_logging(cli.debug)?;
-
-    // ALWAYS spawn debug viewer if debug flag is set
+    // 2. If --debug, spawn viewer (Server) if needed
     if cli.debug {
         spawn_debug_viewer()?;
-        // Give the viewer a moment to start tailing
-        std::thread::sleep(std::time::Duration::from_millis(200));
     }
+
+    // 3. Init Logging (Client Mode)
+    // If --debug was set, we hopefully spawned the viewer and socket is ready.
+    // init_logging will try to connect.
+    let logging_enabled = init_logging(cli.debug)?;
+
+    // Acquire global lock (clients only)
+    let _lock_file = match acquire_lock() {
+        Ok(f) => Some(f),
+        Err(e) => {
+            warn!("Failed to acquire global lock: {}", e);
+            eprintln!("Error: Another instance of kitchn is already running.");
+            return Ok(());
+        }
+    };
 
     // Handle Commands
     match cli.command {
         None => {
-            // If debug was set, we spawned the viewer. If not set, print help.
             if !cli.debug {
                 use clap::CommandFactory;
                 Cli::command().print_help()?;
@@ -227,7 +401,6 @@ fn main() -> Result<()> {
             if logging_enabled {
                 debug!("Executing command: {:?}", cmd);
             }
-            // Proceed to execute command
             process_command(cmd)?;
         }
     }
@@ -242,7 +415,6 @@ fn acquire_lock() -> Result<File> {
         .and_then(|d| d.runtime_dir().map(|p| p.to_path_buf()))
         .unwrap_or_else(env::temp_dir);
 
-    // Ensure dir exists
     if !runtime_dir.exists() {
         let _ = fs::create_dir_all(&runtime_dir);
     }
@@ -260,32 +432,33 @@ fn acquire_lock() -> Result<File> {
 
     if ret != 0 {
         let err = std::io::Error::last_os_error();
-        // EWOULDBLOCK (11) means locked by another process
         return Err(anyhow::anyhow!(
             "Could not acquire lock (another instance running?): {}",
             err
         ));
     }
 
-    // Lock is held as long as `file` is open (until drop)
     Ok(file)
 }
 
 fn process_command(cmd: Commands) -> Result<()> {
     let dirs = ProjectDirs::from("", "", "kitchn").context("Could not determine project dirs")?;
-    let data_dir = dirs.data_dir(); // ~/.local/share/kitchn
+    let data_dir = dirs.data_dir();
     let db_path = data_dir.join("pantry.db");
     let mut db = Pantry::load(&db_path)?;
+    let config = Cookbook::load().context("Failed to load Kitchn cookbook")?;
 
     match cmd {
         Commands::Stock { path } => {
-            let installed = stock_pantry(&path, &mut db)?;
+            let installed = stock_pantry(&path, &mut db, &config)?;
             db.save()?;
 
-            // Apply only the newly stocked ingredients
-            let config = Cookbook::load().context("Failed to load Kitchn cookbook")?;
             for pkg in installed {
-                log_msg("cook_start", &format!("simmering {}", pkg.meta.name));
+                log_msg(
+                    &config,
+                    "cook_start",
+                    &format!("simmering {}", pkg.meta.name),
+                );
                 let _ = processor::apply(&pkg, &config)?;
             }
         }
@@ -295,46 +468,50 @@ fn process_command(cmd: Commands) -> Result<()> {
                 PathBuf::from(format!("{}.bag", name))
             });
             packager::pack(&input, &out)?;
-            log_msg("wrap_ok", &format!("wrapped package to {}", out.display()));
+            log_msg(
+                &config,
+                "wrap_ok",
+                &format!("wrapped package to {}", out.display()),
+            );
         }
         Commands::Cook => {
-            cook_db(&db)?;
+            cook_db(&db, &config)?;
         }
         Commands::Pantry { command } => match command {
             Some(PantryCommands::Clean) => {
                 let count = db.list().len();
                 if count == 0 {
-                    log_msg("pantry_empty", "pantry is already empty");
+                    log_msg(&config, "pantry_empty", "pantry is already empty");
                 } else {
                     db.clean();
                     db.save()?;
-                    log_msg("pantry_clean_ok", &format!("removed {} ingredients", count));
+                    log_msg(
+                        &config,
+                        "pantry_clean_ok",
+                        &format!("removed {} ingredients", count),
+                    );
                 }
             }
             None => {
-                list_pantry(&db);
+                list_pantry(&db, &config);
             }
         },
         Commands::Bake => {
-            bake_config(&dirs)?;
+            bake_config(&dirs, &config)?;
         }
-        Commands::InternalWatch { .. } => {
-            // Handled in main
-        }
+        Commands::InternalWatch { .. } => {}
     }
     Ok(())
 }
 
-fn stock_pantry(path: &Path, db: &mut Pantry) -> Result<Vec<Ingredient>> {
+fn stock_pantry(path: &Path, db: &mut Pantry, config: &Cookbook) -> Result<Vec<Ingredient>> {
     let mut installed_list = Vec::new();
 
     if !path.exists() {
         return Err(anyhow!("File not found: {:?}", path));
     }
 
-    // Check if it's a .bag package
     if path.extension().is_some_and(|ext| ext == "bag") {
-        // Read zip
         let file = fs::File::open(path)?;
         let mut archive = zip::ZipArchive::new(file)?;
 
@@ -343,29 +520,28 @@ fn stock_pantry(path: &Path, db: &mut Pantry) -> Result<Vec<Ingredient>> {
             if file.name().ends_with(".ing") {
                 let mut content = String::new();
                 std::io::Read::read_to_string(&mut file, &mut content)?;
-
                 let pkg: Ingredient = toml::from_str(&content).with_context(|| {
                     format!("Failed to parse ingredient inside zip: {}", file.name())
                 })?;
 
                 log_msg(
+                    config,
                     "stock_ok",
                     &format!("stocked {} v{}", pkg.meta.name, pkg.meta.version),
                 );
-                // We clone here because store takes ownership, but we want to return it too
-                // Or proper: store takes ownership. We can clone before storing.
+
                 let pkg_clone = pkg.clone();
                 db.store(pkg)?;
                 installed_list.push(pkg_clone);
             }
         }
     } else {
-        // Single .ing file
         let content = fs::read_to_string(path)?;
         let pkg: Ingredient = toml::from_str(&content)
             .with_context(|| format!("Failed to parse ingredient: {:?}", path))?;
 
         log_msg(
+            config,
             "stock_ok",
             &format!("stocked {} v{}", pkg.meta.name, pkg.meta.version),
         );
@@ -376,13 +552,13 @@ fn stock_pantry(path: &Path, db: &mut Pantry) -> Result<Vec<Ingredient>> {
     Ok(installed_list)
 }
 
-fn list_pantry(db: &Pantry) {
+fn list_pantry(db: &Pantry, config: &Cookbook) {
     use colored::*;
     println!("{}", "\nStocked Ingredients (Pantry):\n".bold().underline());
 
     let fragments = db.list();
     if fragments.is_empty() {
-        log("pantry_empty");
+        log(config, "pantry_empty");
         return;
     }
 
@@ -398,14 +574,10 @@ fn list_pantry(db: &Pantry) {
     }
 }
 
-fn cook_db(db: &Pantry) -> Result<()> {
-    // 1. Load Cookbook
-    let config = Cookbook::load().context("Failed to load Kitchn cookbook")?;
-
-    // 2. Process Ingredients
+fn cook_db(db: &Pantry, config: &Cookbook) -> Result<()> {
     let ingredients = db.list();
     if ingredients.is_empty() {
-        log("cook_empty");
+        log(config, "cook_empty");
         return Ok(());
     }
 
@@ -414,16 +586,18 @@ fn cook_db(db: &Pantry) -> Result<()> {
 
     for pkg in ingredients {
         log_msg(
+            config,
             "cook_start",
             &format!("simmering <primary>{}</primary>", pkg.meta.name),
         );
-        if !processor::apply(pkg, &config)? {
+        if !processor::apply(pkg, config)? {
             hook_failures += 1;
         }
     }
 
     if hook_failures > 0 {
         log_msg(
+            config,
             "cook_ok",
             &format!(
                 "cooked {} ingredients successfully but {} hooks failed",
@@ -432,6 +606,7 @@ fn cook_db(db: &Pantry) -> Result<()> {
         );
     } else {
         log_msg(
+            config,
             "cook_ok",
             &format!("cooked {} ingredients successfully", count),
         );
@@ -440,46 +615,41 @@ fn cook_db(db: &Pantry) -> Result<()> {
     Ok(())
 }
 
-fn bake_config(dirs: &ProjectDirs) -> Result<()> {
-    log("bake_start");
+fn bake_config(dirs: &ProjectDirs, config: &Cookbook) -> Result<()> {
+    log(config, "bake_start");
     let config_dir = dirs.config_dir();
     let cache_dir = dirs.cache_dir();
 
-    log_msg("bake_scan", &config_dir.to_string_lossy());
+    log_msg(config, "bake_scan", &config_dir.to_string_lossy());
 
-    // Verbose check for standard files to inform user
     let files = ["theme.toml", "icons.toml", "layout.toml", "cookbook.toml"];
     for f in files {
         let p = config_dir.join(f);
         if p.exists() {
-            log_msg("bake_file", f);
+            log_msg(config, "bake_file", f);
         }
     }
-
-    // Force load from TOMLs by bypassing load() which might use stale cache
-    // We use load_from_dir but strictly speaking load_from_dir will use cache if fresh.
-    // We force refresh by deleting the bin first.
 
     let bin_path = cache_dir.join("pastry.bin");
     if bin_path.exists() {
         let _ = fs::remove_file(&bin_path);
     }
 
-    // Now load will definitely parse TOMLs
     match Cookbook::load_from_dir(config_dir) {
-        Ok(config) => {
-            log_msg("bake_save", &bin_path.to_string_lossy());
-            if let Err(e) = config.save_binary(&bin_path) {
-                log("bake_fail");
+        Ok(new_config) => {
+            log_msg(config, "bake_save", &bin_path.to_string_lossy());
+            if let Err(e) = new_config.save_binary(&bin_path) {
+                log(config, "bake_fail");
                 return Err(anyhow!("Failed to save binary config: {}", e));
             }
             log_msg(
+                config,
                 "bake_ok",
                 &format!("baked configuration to {}", bin_path.display()),
             );
         }
         Err(e) => {
-            log("bake_fail");
+            log(config, "bake_fail");
             return Err(anyhow!("Failed to load configuration: {}", e));
         }
     }

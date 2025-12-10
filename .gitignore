@@ -9,3 +9,7 @@ assets/examples/cpp/main
 assets/examples/cpp/output.fpkg
 assets/examples/python/output.fpkg
 *.bag
+
+# In-Memoria
+.in-memoria/
+in-memoria.db

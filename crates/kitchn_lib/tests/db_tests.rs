@@ -1,5 +1,5 @@
-use kitchn_lib::db::Pantry;
-use kitchn_lib::ingredient::{Ingredient, IngredientManifest};
+use k_lib::db::Pantry;
+use k_lib::ingredient::{Ingredient, IngredientManifest};
 use tempfile::NamedTempFile;
 
 fn create_ingredient(name: &str) -> Ingredient {
