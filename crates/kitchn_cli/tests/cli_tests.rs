@@ -97,9 +97,9 @@ fn test_cli_help() {
     // or rely on clap handling help before config load.
     // Given the previous success, clap handles it. But let's be safe if we change order.
     let _dir = tempdir().unwrap();
-    // We don't necessarily need to create files for help if it's pure clap, 
-    // but if kitchn initializes early, it might fail. 
-    // Let's assume clap handles it first. 
+    // We don't necessarily need to create files for help if it's pure clap,
+    // but if kitchn initializes early, it might fail.
+    // Let's assume clap handles it first.
     cargo_bin_cmd!("kitchn")
         .arg("--help")
         .assert()
