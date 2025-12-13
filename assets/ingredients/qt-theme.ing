@@ -1,0 +1,86 @@
+[package]
+name = "qt-theme"
+version = "0.2.0"
+authors = ["Kitchn"]
+description = "Qt5/Qt6 theming via qt5ct/qt6ct and KDE globals"
+license = "MIT"
+
+# Qt5ct Color Scheme
+[[templates]]
+target = "~/.config/qt5ct/colors/Sweet-Dracula.conf"
+content = """
+[ColorScheme]
+active_colors={{ colors.fg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.fg }},{{ colors.fg }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.primary }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+disabled_colors={{ colors.bright_black }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.bright_black }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+inactive_colors={{ colors.fg }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.fg }},{{ colors.fg }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+"""
+
+# Qt5ct Config
+[[templates]]
+target = "~/.config/qt5ct/qt5ct.conf"
+content = """
+[Appearance]
+color_scheme_path=~/.config/qt5ct/colors/Sweet-Dracula.conf
+custom_palette=true
+icon_theme=Colloid-Purple-Dracula-Dark
+standard_dialogs=default
+style=Fusion
+
+[Fonts]
+fixed="Monospace,10,-1,5,50,0,0,0,0,0"
+general="{{ fonts.ui }},{{ fonts.size_ui }},-1,5,50,0,0,0,0,0"
+"""
+
+# Qt6ct Color Scheme
+[[templates]]
+target = "~/.config/qt6ct/colors/Sweet-Dracula.conf"
+content = """
+[ColorScheme]
+active_colors={{ colors.fg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.fg }},{{ colors.fg }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.primary }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+disabled_colors={{ colors.bright_black }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.bright_black }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+inactive_colors={{ colors.fg }},{{ colors.bg }},{{ colors.bright_black }},{{ colors.bright_black }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.fg }},{{ colors.fg }},{{ colors.bg }},{{ colors.bg }},{{ colors.black }},{{ colors.bright_black }},{{ colors.fg }},{{ colors.primary }},{{ colors.error }},{{ colors.black }},{{ colors.fg }},{{ colors.black }},{{ colors.fg }},{{ colors.bright_black }}
+"""
+
+# Qt6ct Config
+[[templates]]
+target = "~/.config/qt6ct/qt6ct.conf"
+content = """
+[Appearance]
+color_scheme_path=~/.config/qt6ct/colors/Sweet-Dracula.conf
+custom_palette=true
+icon_theme=Colloid-Purple-Dracula-Dark
+standard_dialogs=default
+style=Fusion
+
+[Fonts]
+fixed="Monospace,10,-1,5,50,0,0,0,0,0"
+general="{{ fonts.ui }},{{ fonts.size_ui }},-1,5,50,0,0,0,0,0"
+"""
+
+# KDE Globals
+[[templates]]
+target = "~/.config/kdeglobals"
+content = """
+[Colors:Window]
+BackgroundNormal={{ colors.bg }}
+ForegroundNormal={{ colors.fg }}
+
+[Colors:View]
+BackgroundNormal={{ colors.bg }}
+ForegroundNormal={{ colors.fg }}
+
+[Colors:Button]
+BackgroundNormal={{ colors.black }}
+ForegroundNormal={{ colors.fg }}
+
+[Colors:Selection]
+BackgroundNormal={{ colors.selection_bg }}
+ForegroundNormal={{ colors.selection_fg }}
+
+[General]
+ColorScheme=Sweet Dracula
+"""
+
+[hooks]
+reload_qt5 = "pkill -USR1 qt5ct || true"
+# reload_qt6 = "pkill -USR1 qt6ct || true"

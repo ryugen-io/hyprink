@@ -271,7 +271,7 @@ pub unsafe extern "C" fn kitchn_store(ctx: *mut KitchnContext, path: *const c_ch
     let p = unsafe { CStr::from_ptr(path).to_string_lossy() };
     match std::fs::read_to_string(Path::new(&*p)) {
         Ok(content) => match toml::from_str::<ingredient::Ingredient>(&content) {
-            Ok(pkg) => match processor::apply(&pkg, &context.config) {
+            Ok(pkg) => match processor::apply(&pkg, &context.config, false) {
                 Ok(_) => 0,
                 Err(e) => {
                     context.set_error(format!("Apply error: {:#}", e));

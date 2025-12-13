@@ -114,7 +114,18 @@ impl Cookbook {
             config_dir.join("pastry.bin")
         };
 
-        Self::load_with_cache(&config_dir, &bin_path)
+        Self::load_with_cache(&config_dir, &bin_path, false)
+    }
+
+    pub fn load_no_cache() -> Result<Self, ConfigError> {
+        let config_dir = Self::get_config_dir()?;
+        let bin_path = if let Ok(cache_dir) = Self::get_cache_dir() {
+            cache_dir.join("pastry.bin")
+        } else {
+            config_dir.join("pastry.bin")
+        };
+
+        Self::load_with_cache(&config_dir, &bin_path, true)
     }
 
     pub fn load_from_dir(config_dir: &Path) -> Result<Self, ConfigError> {
@@ -128,12 +139,13 @@ impl Cookbook {
             config_dir.join("pastry.bin")
         };
 
-        Self::load_with_cache(config_dir, &bin_path)
+        Self::load_with_cache(config_dir, &bin_path, false)
     }
 
-    pub fn load_with_cache(config_dir: &Path, bin_path: &Path) -> Result<Self, ConfigError> {
+    pub fn load_with_cache(config_dir: &Path, bin_path: &Path, force: bool) -> Result<Self, ConfigError> {
         // Try loading from binary cache if it exists and is fresh
-        if bin_path.exists()
+        if !force 
+            && bin_path.exists()
             && Self::is_cache_fresh(bin_path, config_dir)?
             && let Ok(file) = fs::File::open(bin_path)
         {
@@ -387,7 +399,7 @@ mod tests {
         // "if path.exists() ...". Yes.
 
         let loaded =
-            Cookbook::load_with_cache(dir.path(), &config_path).expect("Failed to load from cache");
+            Cookbook::load_with_cache(dir.path(), &config_path, false).expect("Failed to load from cache");
         assert_eq!(loaded.theme.meta.name, "test_theme");
     }
 }

@@ -1,0 +1,49 @@
+[package]
+name = "gtk-settings"
+version = "0.1.0"
+authors = ["Kitchn"]
+description = "GTK3/GTK4 settings (fonts, icons, cursor)"
+license = "MIT"
+
+# GTK3 Settings
+[[templates]]
+target = "~/.config/gtk-3.0/settings.ini"
+content = """
+[Settings]
+gtk-application-prefer-dark-theme=1
+gtk-font-name={{ fonts.ui }} {{ fonts.size_ui }}
+gtk-icon-theme-name=Colloid-Purple-Dracula
+gtk-cursor-theme-name=oreo_sweet_dracula_violet_small
+gtk-cursor-theme-size=24
+gtk-toolbar-style=GTK_TOOLBAR_ICONS
+gtk-toolbar-icon-size=GTK_ICON_SIZE_LARGE_TOOLBAR
+gtk-button-images=0
+gtk-menu-images=0
+gtk-enable-event-sounds=0
+gtk-enable-input-feedback-sounds=0
+gtk-decoration-layout=:close
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintfull
+gtk-xft-rgba=rgb
+"""
+
+# GTK4 Settings
+[[templates]]
+target = "~/.config/gtk-4.0/settings.ini"
+content = """
+[Settings]
+gtk-application-prefer-dark-theme=1
+gtk-font-name={{ fonts.ui }} {{ fonts.size_ui }}
+gtk-icon-theme-name=Colloid-Purple-Dracula
+gtk-cursor-theme-name=oreo_sweet_dracula_violet_small
+gtk-cursor-theme-size=24
+gtk-decoration-layout=:close
+gtk-xft-antialias=1
+gtk-xft-hinting=1
+gtk-xft-hintstyle=hintfull
+gtk-xft-rgba=rgb
+gtk-hint-font-metrics=1
+"""
+
+[hooks]

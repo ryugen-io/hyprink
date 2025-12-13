@@ -4,7 +4,7 @@ use k_lib::config::Cookbook;
 use k_lib::db::Pantry;
 use k_lib::processor;
 
-pub fn execute(db: &Pantry, config: &Cookbook) -> Result<()> {
+pub fn execute(db: &Pantry, config: &Cookbook, force: bool) -> Result<()> {
     let ingredients = db.list();
     if ingredients.is_empty() {
         log(config, "cook_empty");
@@ -20,7 +20,7 @@ pub fn execute(db: &Pantry, config: &Cookbook) -> Result<()> {
             "cook_start",
             &format!("simmering <primary>{}</primary>", pkg.meta.name),
         );
-        if !processor::apply(pkg, config)? {
+        if !processor::apply(pkg, config, force)? {
             hook_failures += 1;
         }
     }

@@ -76,7 +76,7 @@ fn test_processor_apply_hook_success() {
         },
     };
 
-    let result = processor::apply(&pkg, &config);
+    let result = processor::apply(&pkg, &config, false);
     assert!(result.is_ok());
     assert!(result.unwrap(), "Hook should succeed");
 }
@@ -102,7 +102,7 @@ fn test_processor_apply_hook_failure() {
         },
     };
 
-    let result = processor::apply(&pkg, &config);
+    let result = processor::apply(&pkg, &config, false);
     assert!(
         result.is_ok(),
         "Function should not error on hook failure, but return Ok(false)"

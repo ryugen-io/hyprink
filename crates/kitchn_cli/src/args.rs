@@ -25,7 +25,14 @@ pub enum Commands {
         output: Option<PathBuf>,
     },
     /// Cook all ingredients from pantry into the system
-    Cook,
+    Cook {
+        /// Persistently toggle force mode (always overwrite)
+        #[arg(long)]
+        toggle_force: bool,
+        /// Force overwrite for this run only
+        #[arg(long)]
+        force: bool,
+    },
     /// List stocked ingredients
     Pantry {
         #[command(subcommand)]

@@ -12,7 +12,7 @@ use crate::logger;
 use std::collections::HashMap;
 use tera::{Value, to_value, try_get_value};
 
-pub fn apply(ingredient: &Ingredient, config: &Cookbook) -> Result<bool> {
+pub fn apply(ingredient: &Ingredient, config: &Cookbook, _force: bool) -> Result<bool> {
     debug!("Applying ingredient: {}", ingredient.meta.name);
     let mut tera = Tera::default();
     tera.register_filter("hex_to_rgb", hex_to_rgb);

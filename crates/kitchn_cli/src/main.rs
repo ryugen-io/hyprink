@@ -1,4 +1,5 @@
 mod args;
+mod cli_config;
 mod commands;
 mod logging;
 
