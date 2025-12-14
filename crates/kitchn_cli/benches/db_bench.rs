@@ -12,7 +12,6 @@ fn create_dummy_ingredient(id: usize) -> Ingredient {
             authors: vec![],
             repository: None,
             license: None,
-            id: None,
         },
         templates: vec![],
         files: vec![],

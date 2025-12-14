@@ -142,9 +142,13 @@ impl Cookbook {
         Self::load_with_cache(config_dir, &bin_path, false)
     }
 
-    pub fn load_with_cache(config_dir: &Path, bin_path: &Path, force: bool) -> Result<Self, ConfigError> {
+    pub fn load_with_cache(
+        config_dir: &Path,
+        bin_path: &Path,
+        force: bool,
+    ) -> Result<Self, ConfigError> {
         // Try loading from binary cache if it exists and is fresh
-        if !force 
+        if !force
             && bin_path.exists()
             && Self::is_cache_fresh(bin_path, config_dir)?
             && let Ok(file) = fs::File::open(bin_path)
@@ -398,8 +402,8 @@ mod tests {
         // In is_cache_fresh, valid if bin exists. If tomls don't exist, mtime check loop skips?
         // "if path.exists() ...". Yes.
 
-        let loaded =
-            Cookbook::load_with_cache(dir.path(), &config_path, false).expect("Failed to load from cache");
+        let loaded = Cookbook::load_with_cache(dir.path(), &config_path, false)
+            .expect("Failed to load from cache");
         assert_eq!(loaded.theme.meta.name, "test_theme");
     }
 }

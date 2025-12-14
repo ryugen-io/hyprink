@@ -1,11 +1,14 @@
 use std::cell::RefCell;
 use std::ffi::CStr;
 use std::os::raw::{c_char, c_int};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::ptr;
 
 use k_lib::config::Cookbook;
+use k_lib::db::Pantry;
 use k_lib::{ingredient, logger, packager, processor};
+
+// --- Contexts ---
 
 /// Opaque context pointer (wraps Cookbook with error storage)
 pub struct KitchnContext {
@@ -14,15 +17,30 @@ pub struct KitchnContext {
     pub app_name: RefCell<Option<String>>,
 }
 
-impl KitchnContext {
-    fn set_error(&self, err: String) {
-        *self.last_error.borrow_mut() = Some(err);
-    }
-
-    fn clear_error(&self) {
-        *self.last_error.borrow_mut() = None;
-    }
+/// Opaque pantry wrapper
+pub struct KitchnPantry {
+    pub inner: RefCell<Pantry>,
+    pub last_error: RefCell<Option<String>>,
 }
+
+macro_rules! impl_error_handling {
+    ($struct_name:ident) => {
+        impl $struct_name {
+            fn set_error(&self, err: String) {
+                *self.last_error.borrow_mut() = Some(err);
+            }
+
+            fn clear_error(&self) {
+                *self.last_error.borrow_mut() = None;
+            }
+        }
+    };
+}
+
+impl_error_handling!(KitchnContext);
+impl_error_handling!(KitchnPantry);
+
+// --- KitchnContext API ---
 
 #[no_mangle]
 pub extern "C" fn kitchn_context_new() -> *mut KitchnContext {
@@ -41,9 +59,6 @@ pub extern "C" fn kitchn_context_new() -> *mut KitchnContext {
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext` created by `kitchn_context_new`.
 pub unsafe extern "C" fn kitchn_context_free(ctx: *mut KitchnContext) {
     if !ctx.is_null() {
         unsafe {
@@ -52,15 +67,8 @@ pub unsafe extern "C" fn kitchn_context_free(ctx: *mut KitchnContext) {
     }
 }
 
-/// Copies the last error message into the provided buffer.
-/// Returns the number of bytes written (excluding null terminator),
-/// or -1 if the buffer was too small or no error exists.
-/// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext` created by `kitchn_context_new`.
-/// * `buffer` must be a valid pointer to a writable memory region of at least `len` bytes.
 #[no_mangle]
+/// # Safety
 pub unsafe extern "C" fn kitchn_get_last_error(
     ctx: *mut KitchnContext,
     buffer: *mut c_char,
@@ -80,9 +88,7 @@ pub unsafe extern "C" fn kitchn_get_last_error(
         }
 
         unsafe {
-            // Copy bytes
             ptr::copy_nonoverlapping(bytes.as_ptr(), buffer as *mut u8, bytes.len());
-            // Null terminate
             *buffer.add(bytes.len()) = 0;
         }
 
@@ -94,10 +100,6 @@ pub unsafe extern "C" fn kitchn_get_last_error(
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `name` must be a valid, null-terminated C string.
 pub unsafe extern "C" fn kitchn_context_set_app_name(ctx: *mut KitchnContext, name: *const c_char) {
     if !ctx.is_null() && !name.is_null() {
         let context = &*ctx;
@@ -108,10 +110,6 @@ pub unsafe extern "C" fn kitchn_context_set_app_name(ctx: *mut KitchnContext, na
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `level`, `scope`, and `msg` must be valid, null-terminated C strings.
 pub unsafe extern "C" fn kitchn_log(
     ctx: *mut KitchnContext,
     level: *const c_char,
@@ -145,11 +143,6 @@ pub unsafe extern "C" fn kitchn_log(
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `preset_key` must be a valid, null-terminated C string.
-/// * `msg_override` can be null. If not null, must be valid, null-terminated C string.
 pub unsafe extern "C" fn kitchn_log_preset(
     ctx: *mut KitchnContext,
     preset_key: *const c_char,
@@ -174,8 +167,8 @@ pub unsafe extern "C" fn kitchn_log_preset(
 
     let level = &preset.level;
     let scope = preset.scope.as_deref().unwrap_or("");
-
     let msg_default = &preset.msg;
+
     let msg_final = if !msg_override.is_null() {
         unsafe { CStr::from_ptr(msg_override).to_string_lossy() }
     } else {
@@ -183,22 +176,17 @@ pub unsafe extern "C" fn kitchn_log_preset(
     };
 
     let app = context.app_name.borrow();
-
     logger::log_to_terminal(&context.config, level, scope, &msg_final);
 
     if context.config.layout.logging.write_by_default {
         let _ = logger::log_to_file(&context.config, level, scope, &msg_final, app.as_deref());
     }
 
-    0 // Success
+    0
 }
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `src_dir` and `out_file` must be valid, null-terminated C strings.
 pub unsafe extern "C" fn kitchn_pack(
     ctx: *mut KitchnContext,
     src_dir: *const c_char,
@@ -226,10 +214,6 @@ pub unsafe extern "C" fn kitchn_pack(
 
 #[no_mangle]
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `pkg_file` and `target_dir` must be valid, null-terminated C strings.
 pub unsafe extern "C" fn kitchn_unpack(
     ctx: *mut KitchnContext,
     pkg_file: *const c_char,
@@ -256,12 +240,9 @@ pub unsafe extern "C" fn kitchn_unpack(
 }
 
 #[no_mangle]
+/// Cooks/Applies an ingredient file immediately to the current state/config context.
 /// # Safety
-///
-/// This function is unsafe because it dereferences raw pointers.
-/// * `ctx` must be a valid pointer to `KitchnContext`.
-/// * `path` must be a valid, null-terminated C string.
-pub unsafe extern "C" fn kitchn_store(ctx: *mut KitchnContext, path: *const c_char) -> c_int {
+pub unsafe extern "C" fn kitchn_cook_file(ctx: *mut KitchnContext, path: *const c_char) -> c_int {
     if ctx.is_null() {
         return 1;
     }
@@ -288,4 +269,143 @@ pub unsafe extern "C" fn kitchn_store(ctx: *mut KitchnContext, path: *const c_ch
             1
         }
     }
+}
+
+// --- KitchnPantry API ---
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_load(path: *const c_char) -> *mut KitchnPantry {
+    let p_str = if !path.is_null() {
+        unsafe { CStr::from_ptr(path).to_string_lossy() }
+    } else {
+        return ptr::null_mut();
+    };
+
+    let p_path = PathBuf::from(p_str.as_ref());
+
+    match Pantry::load(&p_path) {
+        Ok(p) => {
+            let ctx = Box::new(KitchnPantry {
+                inner: RefCell::new(p),
+                last_error: RefCell::new(None),
+            });
+            Box::into_raw(ctx)
+        }
+        Err(_) => ptr::null_mut(),
+    }
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_free(pantry: *mut KitchnPantry) {
+    if !pantry.is_null() {
+        unsafe {
+            drop(Box::from_raw(pantry));
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_get_last_error(
+    pantry: *mut KitchnPantry,
+    buffer: *mut c_char,
+    len: usize,
+) -> c_int {
+    if pantry.is_null() || buffer.is_null() {
+        return -1;
+    }
+
+    let p = unsafe { &*pantry };
+    let borrow = p.last_error.borrow();
+
+    if let Some(msg) = &*borrow {
+        let bytes = msg.as_bytes();
+        if bytes.len() >= len {
+            return -1;
+        }
+
+        unsafe {
+            ptr::copy_nonoverlapping(bytes.as_ptr(), buffer as *mut u8, bytes.len());
+            *buffer.add(bytes.len()) = 0;
+        }
+
+        return bytes.len() as c_int;
+    }
+
+    0
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_save(pantry: *mut KitchnPantry) -> c_int {
+    if pantry.is_null() {
+        return 1;
+    }
+    let p = unsafe { &*pantry };
+    p.clear_error();
+
+    match p.inner.borrow().save() {
+        Ok(_) => 0,
+        Err(e) => {
+            p.set_error(format!("{:#}", e));
+            1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_add_toml(
+    pantry: *mut KitchnPantry,
+    toml_content: *const c_char,
+) -> c_int {
+    if pantry.is_null() || toml_content.is_null() {
+        return 1;
+    }
+    let p = unsafe { &*pantry };
+    p.clear_error();
+
+    let content = unsafe { CStr::from_ptr(toml_content).to_string_lossy() };
+    match toml::from_str::<ingredient::Ingredient>(&content) {
+        Ok(ing) => match p.inner.borrow_mut().store(ing) {
+            Ok(_) => 0,
+            Err(e) => {
+                p.set_error(format!("Store error: {:#}", e));
+                1
+            }
+        },
+        Err(e) => {
+            p.set_error(format!("Parse error: {:#}", e));
+            1
+        }
+    }
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_remove(
+    pantry: *mut KitchnPantry,
+    name: *const c_char,
+) -> c_int {
+    if pantry.is_null() || name.is_null() {
+        return 1;
+    }
+    let p = unsafe { &*pantry };
+    p.clear_error();
+
+    let n = unsafe { CStr::from_ptr(name).to_string_lossy() };
+    p.inner.borrow_mut().discard(&n);
+    0
+}
+
+#[no_mangle]
+/// # Safety
+pub unsafe extern "C" fn kitchn_pantry_count(pantry: *mut KitchnPantry) -> c_int {
+    if pantry.is_null() {
+        return -1;
+    }
+    let p = unsafe { &*pantry };
+    p.inner.borrow().list().len() as c_int
 }

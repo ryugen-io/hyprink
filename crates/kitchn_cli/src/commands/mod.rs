@@ -36,26 +36,33 @@ pub fn process_command(cmd: Commands) -> Result<()> {
         Commands::Wrap { input, output } => {
             wrap::execute(input, output, &config)?;
         }
-        Commands::Cook { toggle_force, force } => {
+        Commands::Cook {
+            toggle_force,
+            force,
+        } => {
             use crate::cli_config::CliConfig;
-            
+
             let mut current_force = force;
-            
+
             // Handle Toggle
             if toggle_force {
                 let mut cli_conf = CliConfig::load().unwrap_or_default();
                 cli_conf.force_cooking = !cli_conf.force_cooking;
-                
+
                 if cli_conf.force_cooking {
                     log_msg(&config, "info", "FORCE MODE ENABLED (persistent)");
                 } else {
                     log_msg(&config, "info", "FORCE MODE DISABLED (persistent)");
                 }
-                
+
                 if let Err(e) = cli_conf.save() {
-                    log_msg(&config, "error", &format!("Failed to save CLI config: {}", e));
+                    log_msg(
+                        &config,
+                        "error",
+                        &format!("Failed to save CLI config: {}", e),
+                    );
                 }
-                
+
                 // If toggled on, we consider this run forced
                 if cli_conf.force_cooking {
                     current_force = true;
@@ -70,13 +77,17 @@ pub fn process_command(cmd: Commands) -> Result<()> {
             // If force is active, we MUST reload the cookbook ignoring cache
             let final_config = if current_force {
                 // Reload config forcing cache bypass
-                 match Cookbook::load_no_cache() {
+                match Cookbook::load_no_cache() {
                     Ok(c) => c,
                     Err(e) => {
-                        log_msg(&config, "warn", &format!("Failed to reload config with no-cache: {}", e));
+                        log_msg(
+                            &config,
+                            "warn",
+                            &format!("Failed to reload config with no-cache: {}", e),
+                        );
                         config
                     }
-                 }
+                }
             } else {
                 config
             };

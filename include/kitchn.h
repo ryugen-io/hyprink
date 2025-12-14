@@ -66,6 +66,11 @@
  */
 typedef struct KitchnContext KitchnContext;
 
+/**
+ * Opaque pantry wrapper
+ */
+typedef struct KitchnPantry KitchnPantry;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -74,78 +79,79 @@ struct KitchnContext *kitchn_context_new(void);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext` created by `kitchn_context_new`.
  */
 void kitchn_context_free(struct KitchnContext *ctx);
 
 /**
- * Copies the last error message into the provided buffer.
- * Returns the number of bytes written (excluding null terminator),
- * or -1 if the buffer was too small or no error exists.
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext` created by `kitchn_context_new`.
- * * `buffer` must be a valid pointer to a writable memory region of at least `len` bytes.
  */
 int kitchn_get_last_error(struct KitchnContext *ctx, char *buffer, uintptr_t len);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `name` must be a valid, null-terminated C string.
  */
 void kitchn_context_set_app_name(struct KitchnContext *ctx, const char *name);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `level`, `scope`, and `msg` must be valid, null-terminated C strings.
  */
 void kitchn_log(struct KitchnContext *ctx, const char *level, const char *scope, const char *msg);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `preset_key` must be a valid, null-terminated C string.
- * * `msg_override` can be null. If not null, must be valid, null-terminated C string.
  */
 int kitchn_log_preset(struct KitchnContext *ctx, const char *preset_key, const char *msg_override);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `src_dir` and `out_file` must be valid, null-terminated C strings.
  */
 int kitchn_pack(struct KitchnContext *ctx, const char *src_dir, const char *out_file);
 
 /**
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `pkg_file` and `target_dir` must be valid, null-terminated C strings.
  */
 int kitchn_unpack(struct KitchnContext *ctx, const char *pkg_file, const char *target_dir);
 
 /**
+ * Cooks/Applies an ingredient file immediately to the current state/config context.
  * # Safety
- *
- * This function is unsafe because it dereferences raw pointers.
- * * `ctx` must be a valid pointer to `KitchnContext`.
- * * `path` must be a valid, null-terminated C string.
  */
-int kitchn_store(struct KitchnContext *ctx, const char *path);
+int kitchn_cook_file(struct KitchnContext *ctx, const char *path);
+
+/**
+ * # Safety
+ */
+struct KitchnPantry *kitchn_pantry_load(const char *path);
+
+/**
+ * # Safety
+ */
+void kitchn_pantry_free(struct KitchnPantry *pantry);
+
+/**
+ * # Safety
+ */
+int kitchn_pantry_get_last_error(struct KitchnPantry *pantry, char *buffer, uintptr_t len);
+
+/**
+ * # Safety
+ */
+int kitchn_pantry_save(struct KitchnPantry *pantry);
+
+/**
+ * # Safety
+ */
+int kitchn_pantry_add_toml(struct KitchnPantry *pantry, const char *toml_content);
+
+/**
+ * # Safety
+ */
+int kitchn_pantry_remove(struct KitchnPantry *pantry, const char *name);
+
+/**
+ * # Safety
+ */
+int kitchn_pantry_count(struct KitchnPantry *pantry);
 
 #ifdef __cplusplus
 }  // extern "C"
