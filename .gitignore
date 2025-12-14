@@ -3,6 +3,12 @@
 Cargo.lock
 .idea
 .vscode
+.serena
+.serena/*
+.serena/memories
+
+.claude
+
 *.iml
 *.fpkg
 assets/examples/cpp/main
