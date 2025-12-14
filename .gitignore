@@ -6,6 +6,8 @@ Cargo.lock
 .serena
 .serena/*
 .serena/memories
+.serena/memories/*
+.serena/project.yml
 
 .claude
 
