@@ -10,7 +10,7 @@ target = "~/.config/starship/starship.toml"
 content = '''
 add_newline = false
 
-format = "${custom.ssh}${custom.session}$directory$git_branch$rust$python$nodejs$time$line_break$character"
+format = "${custom.ssh}${custom.session}$git_branch$rust$python$nodejs$time$line_break$character"
 
 [character]
 success_symbol = "[ =>](fg:{{ colors.success }})"
@@ -21,14 +21,14 @@ vicmd_symbol = "[ <=](fg:{{ colors.secondary }})"
 command = "echo '󰞷 '"
 shell = ["bash", "--noprofile", "--norc"]
 when = "[[ -n $SSH_CONNECTION ]] || [[ -n $SSH_TTY ]]"
-format = "[](fg:{{ colors.tabs }})[$output]($style)[](fg:{{ colors.tabs }})"
-style = "bg:{{ colors.tabs }} fg:{{ colors.fg }}"
+format = "[](fg:{{ colors.selection_bg }})[$output]($style)[](fg:{{ colors.selection_bg }})"
+style = "bg:{{ colors.selection_bg }} fg:{{ colors.fg }}"
 
 [custom.session]
 command = "~/.local/lib/starship/sessions"
 when = "true"
-format = "[](fg:{{ colors.bg }})[ $output]($style)[](fg:{{ colors.bg }})"
-style = "bg:{{ colors.bg }} fg:{{ colors.fg }}"
+format = "[](fg:{{ colors.selection_bg }})[ $output]($style)[](fg:{{ colors.selection_bg }})"
+style = "bg:{{ colors.selection_bg }} fg:{{ colors.fg }}"
 
 [directory]
 style = "bg:{{ colors.selection_bg }} fg:{{ colors.fg }}"
