@@ -108,9 +108,8 @@ interface/accessibility/accessibility_support = 0
 # ============================================================================
 
 interface/theme/follow_system_theme = false
-interface/theme/preset = ""
-interface/theme/spacing_preset = "Default"
-interface/theme/icon_and_font_color = 0
+interface/theme/preset = "Custom"
+interface/theme/icon_and_font_color = 1
 interface/theme/base_color = {{ colors.bg | hex_to_godot_color }}
 interface/theme/accent_color = {{ colors.primary | hex_to_godot_color }}
 interface/theme/use_system_accent_color = false
