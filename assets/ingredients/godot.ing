@@ -14,21 +14,21 @@ content = """
 resource_local_to_scene = false
 resource_name = ""
 
-# ============================================================================
-# EDITOR INTERFACE SETTINGS
-# ============================================================================
+; ============================================================================
+; EDITOR INTERFACE SETTINGS
+; ============================================================================
 
-# Language & Localization
+; Language & Localization
 interface/editor/editor_language = "en"
 interface/editor/localize_settings = true
 
-# Display & Scaling
+; Display & Scaling
 interface/editor/display_scale = 1
 interface/editor/custom_display_scale = 1.0
 interface/editor/ui_layout_direction = 0
 interface/editor/dock_tab_style = 0
 
-# Font Settings - UI
+; Font Settings - UI
 interface/editor/main_font_size = {{ fonts.size_ui }}
 interface/editor/code_font_size = {{ fonts.size_mono }}
 interface/editor/code_font_contextual_ligatures = 1
@@ -43,7 +43,7 @@ interface/editor/main_font = ""
 interface/editor/main_font_bold = ""
 interface/editor/code_font = ""
 
-# Window & Display
+; Window & Display
 interface/editor/separate_distraction_mode = false
 interface/editor/automatically_open_screenshots = true
 interface/editor/single_window_mode = false
@@ -61,7 +61,7 @@ interface/editor/vsync_mode = 1
 interface/editor/update_continuously = false
 interface/editor/collapse_main_menu = false
 
-# Inspector & Editors
+; Inspector & Editors
 interface/editors/show_scene_tree_root_selection = true
 interface/editors/derive_script_globals_by_name = true
 interface/inspector/max_array_dictionary_items_per_page = 20
@@ -81,31 +81,31 @@ interface/inspector/default_color_picker_mode = 0
 interface/inspector/default_color_picker_shape = 3
 interface/inspector/color_picker_show_intensity = true
 
-# Scene Tabs
+; Scene Tabs
 interface/scene_tabs/display_close_button = 1
 interface/scene_tabs/show_thumbnail_on_hover = true
 interface/scene_tabs/maximum_width = 350
 interface/scene_tabs/show_script_button = false
 interface/scene_tabs/restore_scenes_on_load = true
 
-# Multi-Window
+; Multi-Window
 interface/multi_window/enable = true
 interface/multi_window/restore_windows_on_load = true
 interface/multi_window/maximize_window = false
 
-# Touchscreen
+; Touchscreen
 interface/touchscreen/enable_touch_optimizations = false
 interface/touchscreen/enable_long_press_as_right_click = false
 interface/touchscreen/enable_pan_and_scale_gestures = false
 interface/touchscreen/scale_gizmo_handles = 1
 interface/touchscreen/touch_actions_panel = 1
 
-# Accessibility
+; Accessibility
 interface/accessibility/accessibility_support = 0
 
-# ============================================================================
-# THEME SETTINGS - Kitchn Colors Applied
-# ============================================================================
+; ============================================================================
+; THEME SETTINGS - Kitchn Colors Applied
+; ============================================================================
 
 interface/theme/follow_system_theme = false
 interface/theme/preset = "Custom"
@@ -123,13 +123,13 @@ interface/theme/base_spacing = 4
 interface/theme/additional_spacing = 0
 interface/theme/custom_theme = ""
 
-# ============================================================================
-# TEXT EDITOR THEME - Syntax Highlighting
-# ============================================================================
+; ============================================================================
+; TEXT EDITOR THEME - Syntax Highlighting
+; ============================================================================
 
 text_editor/theme/color_theme = "Custom"
 
-# Core Text Colors
+; Core Text Colors
 text_editor/theme/highlighting/symbol_color = {{ colors.fg | hex_to_godot_color }}
 text_editor/theme/highlighting/keyword_color = {{ colors.primary | hex_to_godot_color }}
 text_editor/theme/highlighting/control_flow_keyword_color = {{ colors.secondary | hex_to_godot_color }}
@@ -143,7 +143,7 @@ text_editor/theme/highlighting/number_color = {{ colors.warn | hex_to_godot_colo
 text_editor/theme/highlighting/function_color = {{ colors.info | hex_to_godot_color }}
 text_editor/theme/highlighting/member_variable_color = {{ colors.fg | hex_to_godot_color }}
 
-# Background & UI Colors
+; Background & UI Colors
 text_editor/theme/highlighting/background_color = {{ colors.bg | hex_to_godot_color }}
 text_editor/theme/highlighting/completion_background_color = {{ colors.bg | hex_to_godot_color }}
 text_editor/theme/highlighting/completion_selected_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.3)") }}
@@ -153,12 +153,12 @@ text_editor/theme/highlighting/completion_scroll_hovered_color = Color(1, 1, 1, 
 text_editor/theme/highlighting/completion_font_color = {{ colors.fg | hex_to_godot_color }}
 text_editor/theme/highlighting/text_color = {{ colors.fg | hex_to_godot_color }}
 
-# Line Numbers & Guides
+; Line Numbers & Guides
 text_editor/theme/highlighting/line_number_color = Color({{ colors.fg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.5)") }}
 text_editor/theme/highlighting/safe_line_number_color = Color({{ colors.success | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.75)") }}
 text_editor/theme/highlighting/line_length_guideline_color = {{ colors.selection_bg | hex_to_godot_color }}
 
-# Caret & Selection
+; Caret & Selection
 text_editor/theme/highlighting/caret_color = Color(1, 1, 1, 1)
 text_editor/theme/highlighting/caret_background_color = Color(0, 0, 0, 1)
 text_editor/theme/highlighting/text_selected_color = Color(0, 0, 0, 0)
@@ -166,16 +166,16 @@ text_editor/theme/highlighting/selection_color = Color({{ colors.selection_bg | 
 text_editor/theme/highlighting/current_line_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.15)") }}
 text_editor/theme/highlighting/word_highlighted_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.2)") }}
 
-# Error & Warning Colors
+; Error & Warning Colors
 text_editor/theme/highlighting/brace_mismatch_color = {{ colors.error | hex_to_godot_color }}
 text_editor/theme/highlighting/executing_line_color = Color(0.2, 0.8, 0.2, 0.4)
 text_editor/theme/highlighting/code_folding_color = Color(1, 1, 1, 0.27)
 text_editor/theme/highlighting/search_result_color = Color({{ colors.warn | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.3)") }}
 text_editor/theme/highlighting/search_result_border_color = Color({{ colors.warn | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.6)") }}
 
-# ============================================================================
-# NETWORK & EXTERNAL PROGRAMS
-# ============================================================================
+; ============================================================================
+; NETWORK & EXTERNAL PROGRAMS
+; ============================================================================
 
 network/connection/check_for_updates = 2
 network/connection/network_mode = 1
@@ -183,9 +183,9 @@ filesystem/external_programs/raster_image_editor = ""
 filesystem/external_programs/vector_image_editor = ""
 filesystem/external_programs/audio_editor = ""
 
-# ============================================================================
-# DOCK & SCENE TREE SETTINGS
-# ============================================================================
+; ============================================================================
+; DOCK & SCENE TREE SETTINGS
+; ============================================================================
 
 docks/scene_tree/ask_before_revoking_unique_name = true
 asset_library/use_threads = true
