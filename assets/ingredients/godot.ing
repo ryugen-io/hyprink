@@ -108,7 +108,7 @@ interface/accessibility/accessibility_support = 0
 # ============================================================================
 
 interface/theme/follow_system_theme = false
-interface/theme/preset = "Custom"
+interface/theme/preset = ""
 interface/theme/spacing_preset = "Default"
 interface/theme/icon_and_font_color = 0
 interface/theme/base_color = {{ colors.bg | hex_to_godot_color }}
@@ -179,6 +179,7 @@ text_editor/theme/highlighting/search_result_border_color = Color({{ colors.warn
 # ============================================================================
 
 network/connection/check_for_updates = 2
+network/connection/network_mode = 1
 filesystem/external_programs/raster_image_editor = ""
 filesystem/external_programs/vector_image_editor = ""
 filesystem/external_programs/audio_editor = ""
