@@ -16,6 +16,7 @@ pub fn apply(ingredient: &Ingredient, config: &Cookbook, _force: bool) -> Result
     debug!("Applying ingredient: {}", ingredient.meta.name);
     let mut tera = Tera::default();
     tera.register_filter("hex_to_rgb", hex_to_rgb);
+    tera.register_filter("hex_to_godot_color", hex_to_godot_color);
 
     let mut ctx = TeraContext::new();
 
@@ -56,6 +57,29 @@ fn hex_to_rgb(value: &Value, _args: &HashMap<String, Value>) -> tera::Result<Val
     let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
 
     Ok(to_value(vec![r, g, b]).unwrap())
+}
+
+/// Tera filter: hex_to_godot_color
+/// Converts hex color to Godot Color format: #BD93F9 -> Color(0.741, 0.576, 0.976, 1)
+fn hex_to_godot_color(value: &Value, _args: &HashMap<String, Value>) -> tera::Result<Value> {
+    let s = try_get_value!("hex_to_godot_color", "value", String, value);
+    let hex = s.trim_start_matches('#');
+
+    if hex.len() != 6 {
+        return Err(tera::Error::msg(format!("Invalid hex color: {}", s)));
+    }
+
+    let r = u8::from_str_radix(&hex[0..2], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+    let g = u8::from_str_radix(&hex[2..4], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+    let b = u8::from_str_radix(&hex[4..6], 16).map_err(|_| tera::Error::msg("Invalid hex"))?;
+
+    // Convert 0-255 to 0.0-1.0 range and format with 3 decimal places
+    let r_float = (r as f32) / 255.0;
+    let g_float = (g as f32) / 255.0;
+    let b_float = (b as f32) / 255.0;
+
+    let godot_color = format!("Color({:.3}, {:.3}, {:.3}, 1)", r_float, g_float, b_float);
+    Ok(to_value(godot_color).unwrap())
 }
 
 fn process_ingredient(
