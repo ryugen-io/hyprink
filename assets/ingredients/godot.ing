@@ -104,6 +104,43 @@ interface/touchscreen/touch_actions_panel = 1
 interface/accessibility/accessibility_support = 0
 
 ; ============================================================================
+; TEXT EDITOR - COMPLETION SETTINGS
+; ============================================================================
+
+text_editor/completion/type_hints = 2
+text_editor/completion/auto_brace_complete = true
+text_editor/completion/idle_parse_delay = 1.0
+text_editor/completion/auto_complete_delay = 0.2
+text_editor/completion/add_type_hints = 1
+text_editor/completion/use_single_quotes = false
+
+; ============================================================================
+; TEXT EDITOR - BEHAVIOR SETTINGS
+; ============================================================================
+
+text_editor/behavior/auto_indent = true
+text_editor/behavior/indent_type = 0
+text_editor/behavior/indent_size = 4
+text_editor/behavior/trim_trailing_whitespace = true
+text_editor/behavior/convert_indent_on_save = true
+
+; ============================================================================
+; DEBUGGER SETTINGS
+; ============================================================================
+
+debugger/auto_switch_to_remote_scene_tree = false
+debugger/profiler_frame_history_size = 600
+debugger/remote_scene_tree_refresh_interval = 1.0
+debugger/remote_inspector_refresh_interval = 0.2
+
+; ============================================================================
+; FILESYSTEM SETTINGS
+; ============================================================================
+
+filesystem/on_save/compress_binary_resources = true
+filesystem/on_save/safe_save_on_backup_then_rename = true
+
+; ============================================================================
 ; THEME SETTINGS - Kitchn Colors Applied
 ; ============================================================================
 
@@ -115,10 +152,10 @@ interface/theme/accent_color = {{ colors.primary | hex_to_godot_color }}
 interface/theme/use_system_accent_color = false
 interface/theme/contrast = 0.25
 interface/theme/draw_extra_borders = false
-interface/theme/icon_saturation = 1.0
+interface/theme/icon_saturation = 2.0
 interface/theme/relationship_line_opacity = 0.1
 interface/theme/border_size = 0
-interface/theme/corner_radius = 3
+interface/theme/corner_radius = 4
 interface/theme/base_spacing = 4
 interface/theme/additional_spacing = 0
 interface/theme/custom_theme = ""
@@ -165,6 +202,14 @@ text_editor/theme/highlighting/text_selected_color = Color(0, 0, 0, 0)
 text_editor/theme/highlighting/selection_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.4)") }}
 text_editor/theme/highlighting/current_line_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.15)") }}
 text_editor/theme/highlighting/word_highlighted_color = Color({{ colors.selection_bg | hex_to_godot_color | replace(from="Color(", to="") | replace(from=", 1)", to=", 0.2)") }}
+
+; ============================================================================
+; TEXT EDITOR - EXTERNAL (Cursor / Gemini CLI Integration)
+; ============================================================================
+
+text_editor/external/use_external_editor = true
+text_editor/external/exec_path = "cursor"
+text_editor/external/exec_flags = "{project} --goto {file}:{line}:{col}"
 
 ; Error & Warning Colors
 text_editor/theme/highlighting/brace_mismatch_color = {{ colors.error | hex_to_godot_color }}
