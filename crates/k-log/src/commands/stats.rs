@@ -2,10 +2,14 @@ use anyhow::Result;
 use k_lib::config::Cookbook;
 use k_lib::logger;
 
-pub fn run(config: &Cookbook) -> Result<()> {
-    let stats = logger::stats(config)?;
+pub fn run(config: &Cookbook, app: Option<&str>) -> Result<()> {
+    let stats = logger::stats(config, app)?;
 
-    println!("Log Statistics:");
+    if let Some(app_name) = app {
+        println!("Log Statistics for '{}':", app_name);
+    } else {
+        println!("Log Statistics:");
+    }
     println!("  Total files: {}", stats.total_files);
     println!("  Total size:  {}", logger::format_size(stats.total_size));
 

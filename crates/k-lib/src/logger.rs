@@ -225,6 +225,8 @@ pub struct CleanupOptions {
     pub max_age_days: Option<u32>,
     /// Override max total size (None = use config default)
     pub max_total_size: Option<String>,
+    /// Filter by app name (None = all apps)
+    pub app: Option<String>,
     /// Delete ALL files regardless of age/size
     pub delete_all: bool,
     /// Dry run - don't actually delete, just report
@@ -256,11 +258,11 @@ pub fn cleanup(config: &Cookbook, options: CleanupOptions) -> Result<CleanupResu
     let mut result = CleanupResult::default();
     let now = std::time::SystemTime::now();
 
-    // Collect all log files
+    // Collect all log files (optionally filtered by app)
     let mut files: Vec<(PathBuf, u64, u64)> = Vec::new(); // (path, size, age_days)
 
     if base_dir.exists() {
-        collect_log_files(&base_dir, &mut files, now)?;
+        collect_log_files(&base_dir, &mut files, now, options.app.as_deref())?;
     }
 
     // Sort by age (oldest first)
@@ -321,7 +323,7 @@ pub struct CleanupResult {
 }
 
 /// Get statistics about log files
-pub fn stats(config: &Cookbook) -> Result<LogStats> {
+pub fn stats(config: &Cookbook, app: Option<&str>) -> Result<LogStats> {
     let base_dir = resolve_base_dir(&config.layout.logging.base_dir)?;
     let mut stats = LogStats::default();
     let now = std::time::SystemTime::now();
@@ -331,7 +333,7 @@ pub fn stats(config: &Cookbook) -> Result<LogStats> {
     }
 
     let mut files: Vec<(PathBuf, u64, u64)> = Vec::new();
-    collect_log_files(&base_dir, &mut files, now)?;
+    collect_log_files(&base_dir, &mut files, now, app)?;
 
     stats.total_files = files.len();
     stats.total_size = files.iter().map(|(_, s, _)| s).sum();
@@ -366,6 +368,7 @@ fn collect_log_files(
     dir: &Path,
     files: &mut Vec<(PathBuf, u64, u64)>,
     now: std::time::SystemTime,
+    app_filter: Option<&str>,
 ) -> Result<()> {
     if !dir.is_dir() {
         return Ok(());
@@ -376,8 +379,24 @@ fn collect_log_files(
         let path = entry.path();
 
         if path.is_dir() {
-            collect_log_files(&path, files, now)?;
-        } else if path.extension().is_some_and(|e| e == "log") {
+            // If app filter is set, only recurse into matching app directories
+            // Path structure: base_dir/{year}/{month}/{app}/...
+            // We check if any ancestor directory matches the app name
+            if let Some(app) = app_filter {
+                let dir_name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                // Check if this directory IS the app directory or if we should keep searching
+                if dir_name == app {
+                    // Found app dir, collect all files within without further app filtering
+                    collect_log_files(&path, files, now, None)?;
+                } else {
+                    // Keep searching for the app directory
+                    collect_log_files(&path, files, now, app_filter)?;
+                }
+            } else {
+                collect_log_files(&path, files, now, None)?;
+            }
+        } else if app_filter.is_none() && path.extension().is_some_and(|e| e == "log") {
+            // Only collect files when we're not filtering by app, or when we've found the app dir
             let meta = fs::metadata(&path)?;
             let size = meta.len();
             let age_days = meta

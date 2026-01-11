@@ -12,14 +12,15 @@ fn main() -> Result<()> {
     let config = Cookbook::load().context("Failed to load Kitchn config")?;
 
     match cli.command {
-        Some(Commands::Stats) => commands::stats::run(&config),
+        Some(Commands::Stats { app }) => commands::stats::run(&config, app.as_deref()),
 
         Some(Commands::Cleanup {
             max_age,
             max_size,
+            app,
             all,
             dry_run,
-        }) => commands::cleanup::run(&config, max_age, max_size, all, dry_run),
+        }) => commands::cleanup::run(&config, max_age, max_size, app, all, dry_run),
 
         None => {
             let preset = cli.preset.context("Preset name required")?;

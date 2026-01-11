@@ -21,7 +21,11 @@ pub struct Cli {
 #[derive(Subcommand)]
 pub enum Commands {
     /// Show log statistics
-    Stats,
+    Stats {
+        /// Filter by app name
+        #[arg(long)]
+        app: Option<String>,
+    },
 
     /// Clean up old log files
     Cleanup {
@@ -32,6 +36,10 @@ pub enum Commands {
         /// Max total size (e.g. "500M", "1G")
         #[arg(long)]
         max_size: Option<String>,
+
+        /// Filter by app name
+        #[arg(long)]
+        app: Option<String>,
 
         /// Delete ALL log files
         #[arg(long)]
