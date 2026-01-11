@@ -6,11 +6,13 @@ pub fn run(
     config: &Cookbook,
     max_age: Option<u32>,
     max_size: Option<String>,
+    all: bool,
     dry_run: bool,
 ) -> Result<()> {
     let options = CleanupOptions {
         max_age_days: max_age,
         max_total_size: max_size,
+        delete_all: all,
         dry_run,
     };
 

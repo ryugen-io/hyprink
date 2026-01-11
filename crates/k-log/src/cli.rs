@@ -33,6 +33,10 @@ pub enum Commands {
         #[arg(long)]
         max_size: Option<String>,
 
+        /// Delete ALL log files
+        #[arg(long)]
+        all: bool,
+
         /// Dry run - show what would be deleted without deleting
         #[arg(long)]
         dry_run: bool,

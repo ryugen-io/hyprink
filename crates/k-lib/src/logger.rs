@@ -225,6 +225,8 @@ pub struct CleanupOptions {
     pub max_age_days: Option<u32>,
     /// Override max total size (None = use config default)
     pub max_total_size: Option<String>,
+    /// Delete ALL files regardless of age/size
+    pub delete_all: bool,
     /// Dry run - don't actually delete, just report
     pub dry_run: bool,
 }
@@ -264,9 +266,9 @@ pub fn cleanup(config: &Cookbook, options: CleanupOptions) -> Result<CleanupResu
     // Sort by age (oldest first)
     files.sort_by_key(|(_, _, age)| std::cmp::Reverse(*age));
 
-    // Delete files older than max_age
+    // Delete all files if requested, otherwise by age
     for (path, size, age) in &files {
-        if *age > max_age as u64 {
+        if options.delete_all || *age > max_age as u64 {
             if options.dry_run {
                 result.would_delete.push(path.display().to_string());
                 result.would_free += size;
@@ -412,17 +414,17 @@ fn cleanup_empty_dirs(dir: &Path) -> Result<()> {
 
 fn parse_size(s: &str) -> Option<u64> {
     let s = s.trim().to_uppercase();
-    let (num_str, multiplier) = if s.ends_with("G") || s.ends_with("GB") {
-        (s.trim_end_matches("GB").trim_end_matches('G'), 1024 * 1024 * 1024)
+    let (num_str, multiplier): (&str, f64) = if s.ends_with("G") || s.ends_with("GB") {
+        (s.trim_end_matches("GB").trim_end_matches('G'), 1024.0 * 1024.0 * 1024.0)
     } else if s.ends_with("M") || s.ends_with("MB") {
-        (s.trim_end_matches("MB").trim_end_matches('M'), 1024 * 1024)
+        (s.trim_end_matches("MB").trim_end_matches('M'), 1024.0 * 1024.0)
     } else if s.ends_with("K") || s.ends_with("KB") {
-        (s.trim_end_matches("KB").trim_end_matches('K'), 1024)
+        (s.trim_end_matches("KB").trim_end_matches('K'), 1024.0)
     } else {
-        (s.as_str(), 1)
+        (s.as_str(), 1.0)
     };
 
-    num_str.trim().parse::<u64>().ok().map(|n| n * multiplier)
+    num_str.trim().parse::<f64>().ok().map(|n| (n * multiplier) as u64)
 }
 
 /// Format bytes as human-readable string

@@ -17,8 +17,9 @@ fn main() -> Result<()> {
         Some(Commands::Cleanup {
             max_age,
             max_size,
+            all,
             dry_run,
-        }) => commands::cleanup::run(&config, max_age, max_size, dry_run),
+        }) => commands::cleanup::run(&config, max_age, max_size, all, dry_run),
 
         None => {
             let preset = cli.preset.context("Preset name required")?;
