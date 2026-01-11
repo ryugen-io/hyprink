@@ -176,6 +176,7 @@ pub fn log_to_file(
     filename = filename.replace("{month}", &month);
     filename = filename.replace("{day}", &day);
     filename = filename.replace("{app}", app_name);
+    filename = filename.replace("{scope}", scope);
 
     let full_dir = base_dir.join(rel_path);
     fs::create_dir_all(&full_dir)?;
