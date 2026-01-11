@@ -77,8 +77,8 @@ impl ColorResolver {
 mod tests {
     use super::*;
     use crate::config::{
-        Cookbook, DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, StructureConfig,
-        TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
+        Cookbook, DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, RetentionConfig,
+        StructureConfig, TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
     };
     use std::collections::HashMap;
 
@@ -120,6 +120,7 @@ mod tests {
                     timestamp_format: "".to_string(),
                     write_by_default: false,
                     app_name: "test".to_string(),
+                    retention: RetentionConfig::default(),
                 },
                 include: None,
             },

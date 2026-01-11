@@ -1,6 +1,6 @@
 use k_lib::config::{
-    Cookbook, DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, StructureConfig,
-    TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
+    Cookbook, DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, RetentionConfig,
+    StructureConfig, TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
 };
 use k_lib::ingredient::{Hooks, Ingredient, IngredientManifest};
 use k_lib::processor;
@@ -44,6 +44,7 @@ fn mock_cookbook() -> Cookbook {
                 timestamp_format: "".into(),
                 write_by_default: false,
                 app_name: "test".into(),
+                retention: RetentionConfig::default(),
             },
             include: None,
         },

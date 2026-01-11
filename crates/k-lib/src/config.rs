@@ -61,10 +61,40 @@ pub struct LoggingConfig {
     pub write_by_default: bool,
     #[serde(default = "default_app_name")]
     pub app_name: String,
+    #[serde(default)]
+    pub retention: RetentionConfig,
 }
 
 fn default_app_name() -> String {
     "kitchn".to_string()
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct RetentionConfig {
+    #[serde(default = "default_max_age_days")]
+    pub max_age_days: u32,
+    #[serde(default)]
+    pub max_total_size: Option<String>, // e.g. "500M", "1G"
+    #[serde(default = "default_compress_after_days")]
+    pub compress_after_days: Option<u32>,
+}
+
+impl Default for RetentionConfig {
+    fn default() -> Self {
+        Self {
+            max_age_days: default_max_age_days(),
+            max_total_size: None,
+            compress_after_days: default_compress_after_days(),
+        }
+    }
+}
+
+fn default_max_age_days() -> u32 {
+    30
+}
+
+fn default_compress_after_days() -> Option<u32> {
+    Some(7)
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -382,6 +412,7 @@ mod tests {
                     timestamp_format: "%Y".to_string(),
                     write_by_default: false,
                     app_name: "test".to_string(),
+                    retention: RetentionConfig::default(),
                 },
                 include: None,
             },

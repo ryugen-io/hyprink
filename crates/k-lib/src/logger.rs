@@ -5,7 +5,7 @@ use chrono::Local;
 use colored::Colorize;
 use std::fs::{self, OpenOptions};
 use std::io::Write;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 pub fn log_to_terminal(config: &Cookbook, level: &str, scope: &str, msg: &str) {
     let icon_set_key = &config.theme.settings.active_icons;
@@ -214,12 +214,236 @@ fn strip_tags(msg: &str) -> String {
     result
 }
 
+// ============================================================================
+// Log Cleanup & Stats
+// ============================================================================
+
+/// Options for log cleanup operations
+#[derive(Debug, Clone, Default)]
+pub struct CleanupOptions {
+    /// Override max age in days (None = use config default)
+    pub max_age_days: Option<u32>,
+    /// Override max total size (None = use config default)
+    pub max_total_size: Option<String>,
+    /// Dry run - don't actually delete, just report
+    pub dry_run: bool,
+}
+
+/// Statistics about log files
+#[derive(Debug, Default)]
+pub struct LogStats {
+    pub total_files: usize,
+    pub total_size: u64,
+    pub oldest_file: Option<String>,
+    pub newest_file: Option<String>,
+    pub files_by_age: Vec<(String, u64, u64)>, // (path, size, age_days)
+}
+
+/// Clean up old log files based on retention policy
+pub fn cleanup(config: &Cookbook, options: CleanupOptions) -> Result<CleanupResult> {
+    let base_dir = resolve_base_dir(&config.layout.logging.base_dir)?;
+    let retention = &config.layout.logging.retention;
+
+    let max_age = options.max_age_days.unwrap_or(retention.max_age_days);
+    let max_size = options
+        .max_total_size
+        .as_ref()
+        .or(retention.max_total_size.as_ref())
+        .and_then(|s| parse_size(s));
+
+    let mut result = CleanupResult::default();
+    let now = std::time::SystemTime::now();
+
+    // Collect all log files
+    let mut files: Vec<(PathBuf, u64, u64)> = Vec::new(); // (path, size, age_days)
+
+    if base_dir.exists() {
+        collect_log_files(&base_dir, &mut files, now)?;
+    }
+
+    // Sort by age (oldest first)
+    files.sort_by_key(|(_, _, age)| std::cmp::Reverse(*age));
+
+    // Delete files older than max_age
+    for (path, size, age) in &files {
+        if *age > max_age as u64 {
+            if options.dry_run {
+                result.would_delete.push(path.display().to_string());
+                result.would_free += size;
+            } else if fs::remove_file(path).is_ok() {
+                result.deleted.push(path.display().to_string());
+                result.freed += size;
+            }
+        }
+    }
+
+    // If max_size is set, delete oldest files until under limit
+    if let Some(limit) = max_size {
+        let remaining: Vec<_> = files
+            .iter()
+            .filter(|(p, _, _)| !result.deleted.contains(&p.display().to_string()))
+            .collect();
+
+        let mut total: u64 = remaining.iter().map(|(_, s, _)| s).sum();
+
+        for (path, size, _) in remaining.iter().rev() {
+            if total <= limit {
+                break;
+            }
+            if options.dry_run {
+                result.would_delete.push(path.display().to_string());
+                result.would_free += size;
+            } else if fs::remove_file(path).is_ok() {
+                result.deleted.push(path.display().to_string());
+                result.freed += size;
+                total -= size;
+            }
+        }
+    }
+
+    // Clean up empty directories
+    if !options.dry_run {
+        cleanup_empty_dirs(&base_dir)?;
+    }
+
+    Ok(result)
+}
+
+/// Result of a cleanup operation
+#[derive(Debug, Default)]
+pub struct CleanupResult {
+    pub deleted: Vec<String>,
+    pub freed: u64,
+    pub would_delete: Vec<String>, // for dry-run
+    pub would_free: u64,           // for dry-run
+}
+
+/// Get statistics about log files
+pub fn stats(config: &Cookbook) -> Result<LogStats> {
+    let base_dir = resolve_base_dir(&config.layout.logging.base_dir)?;
+    let mut stats = LogStats::default();
+    let now = std::time::SystemTime::now();
+
+    if !base_dir.exists() {
+        return Ok(stats);
+    }
+
+    let mut files: Vec<(PathBuf, u64, u64)> = Vec::new();
+    collect_log_files(&base_dir, &mut files, now)?;
+
+    stats.total_files = files.len();
+    stats.total_size = files.iter().map(|(_, s, _)| s).sum();
+
+    if let Some((path, _, _)) = files.iter().max_by_key(|(_, _, age)| age) {
+        stats.oldest_file = Some(path.display().to_string());
+    }
+    if let Some((path, _, _)) = files.iter().min_by_key(|(_, _, age)| age) {
+        stats.newest_file = Some(path.display().to_string());
+    }
+
+    stats.files_by_age = files
+        .into_iter()
+        .map(|(p, s, a)| (p.display().to_string(), s, a))
+        .collect();
+
+    Ok(stats)
+}
+
+fn resolve_base_dir(base_dir_str: &str) -> Result<PathBuf> {
+    if base_dir_str.starts_with('~') {
+        let home = directories::UserDirs::new().context("Could not find home dir")?;
+        Ok(PathBuf::from(
+            base_dir_str.replace('~', home.home_dir().to_str().unwrap()),
+        ))
+    } else {
+        Ok(PathBuf::from(base_dir_str))
+    }
+}
+
+fn collect_log_files(
+    dir: &Path,
+    files: &mut Vec<(PathBuf, u64, u64)>,
+    now: std::time::SystemTime,
+) -> Result<()> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+
+        if path.is_dir() {
+            collect_log_files(&path, files, now)?;
+        } else if path.extension().is_some_and(|e| e == "log") {
+            let meta = fs::metadata(&path)?;
+            let size = meta.len();
+            let age_days = meta
+                .modified()
+                .ok()
+                .and_then(|m| now.duration_since(m).ok())
+                .map(|d| d.as_secs() / 86400)
+                .unwrap_or(0);
+
+            files.push((path, size, age_days));
+        }
+    }
+
+    Ok(())
+}
+
+fn cleanup_empty_dirs(dir: &Path) -> Result<()> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+
+    for entry in fs::read_dir(dir)? {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            cleanup_empty_dirs(&path)?;
+            // Try to remove if empty (will fail silently if not empty)
+            let _ = fs::remove_dir(&path);
+        }
+    }
+
+    Ok(())
+}
+
+fn parse_size(s: &str) -> Option<u64> {
+    let s = s.trim().to_uppercase();
+    let (num_str, multiplier) = if s.ends_with("G") || s.ends_with("GB") {
+        (s.trim_end_matches("GB").trim_end_matches('G'), 1024 * 1024 * 1024)
+    } else if s.ends_with("M") || s.ends_with("MB") {
+        (s.trim_end_matches("MB").trim_end_matches('M'), 1024 * 1024)
+    } else if s.ends_with("K") || s.ends_with("KB") {
+        (s.trim_end_matches("KB").trim_end_matches('K'), 1024)
+    } else {
+        (s.as_str(), 1)
+    };
+
+    num_str.trim().parse::<u64>().ok().map(|n| n * multiplier)
+}
+
+/// Format bytes as human-readable string
+pub fn format_size(bytes: u64) -> String {
+    if bytes >= 1024 * 1024 * 1024 {
+        format!("{:.2} GB", bytes as f64 / (1024.0 * 1024.0 * 1024.0))
+    } else if bytes >= 1024 * 1024 {
+        format!("{:.2} MB", bytes as f64 / (1024.0 * 1024.0))
+    } else if bytes >= 1024 {
+        format!("{:.2} KB", bytes as f64 / 1024.0)
+    } else {
+        format!("{} B", bytes)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::config::{
-        DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, StructureConfig, TagConfig,
-        ThemeConfig, ThemeMeta, ThemeSettings,
+        DictionaryConfig, IconsConfig, LayoutConfig, LoggingConfig, RetentionConfig,
+        StructureConfig, TagConfig, ThemeConfig, ThemeMeta, ThemeSettings,
     };
     use std::collections::HashMap;
     use tempfile::tempdir;
@@ -262,6 +486,7 @@ mod tests {
                     timestamp_format: "%Y".to_string(),
                     write_by_default: true,
                     app_name: "default_app".to_string(),
+                    retention: RetentionConfig::default(),
                 },
                 include: None,
             },
