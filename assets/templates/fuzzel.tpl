@@ -1,0 +1,33 @@
+[manifest]
+name = "fuzzel"
+version = "0.1.0"
+authors = ["Kitchn"]
+description = "Fuzzel launcher theme"
+license = "MIT"
+
+[[targets]]
+target = "~/.config/fuzzel/fuzzel.ini"
+content = """
+[main]
+font={{ fonts.mono }}:size=6
+icon-theme=kora
+anchor=top-left
+lines=6
+width=28
+horizontal-pad=10
+vertical-pad=5
+prompt=>
+
+[border]
+radius=3
+
+[colors]
+background={{ colors.bg | trim_start_matches(pat="#") }}ff
+text={{ colors.fg | trim_start_matches(pat="#") }}ff
+match={{ colors.secondary | trim_start_matches(pat="#") }}ff
+selection={{ colors.selection_bg | trim_start_matches(pat="#") }}ff
+selection-text={{ colors.fg | trim_start_matches(pat="#") }}ff
+border={{ colors.secondary | trim_start_matches(pat="#") }}ff
+"""
+
+[hooks]

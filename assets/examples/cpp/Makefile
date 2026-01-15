@@ -1,9 +1,9 @@
 CXX = g++
 CXXFLAGS = -I../../../include -L../../../target/release -Wall
-LIBS = -lkitchn_ffi -lpthread -ldl -lm
+LIBS = -lhi_ffi -lpthread -ldl -lm
 
 # Ensure we can find the shared library at runtime
-# NOTE: In a real install, libkitchn_ffi.so would be in /usr/lib
+# NOTE: In a real install, libhi_ffi.so would be in /usr/lib
 RUST_LIB_PATH = ../../../target/release
 
 all: main

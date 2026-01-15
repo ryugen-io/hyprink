@@ -1,0 +1,14 @@
+/code/git/ryugen-io/hyprink/target/release/deps/serde-be28240534f3868c.d: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /code/git/ryugen-io/hyprink/target/release/build/serde-ddddb6186e93191c/out/private.rs
+
+/code/git/ryugen-io/hyprink/target/release/deps/libserde-be28240534f3868c.rlib: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /code/git/ryugen-io/hyprink/target/release/build/serde-ddddb6186e93191c/out/private.rs
+
+/code/git/ryugen-io/hyprink/target/release/deps/libserde-be28240534f3868c.rmeta: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /code/git/ryugen-io/hyprink/target/release/build/serde-ddddb6186e93191c/out/private.rs
+
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/code/git/ryugen-io/hyprink/target/release/build/serde-ddddb6186e93191c/out/private.rs:
+
+# env-dep:OUT_DIR=/code/git/ryugen-io/hyprink/target/release/build/serde-ddddb6186e93191c/out

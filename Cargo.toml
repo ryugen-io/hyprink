@@ -1,16 +1,11 @@
 [workspace]
 resolver = "2"
-members = [
-    "crates/k-lib",
-    "crates/k-ffi",
-    "crates/k-bin",
-    "crates/k-log",
-]
+members = ["crates/hi_core", "crates/hi_ffi", "crates/hi_cli"]
 exclude = ["assets/examples"]
 
 [profile.release]
 lto = true
 codegen-units = 1
 strip = true
-opt-level = "z"  # Optimize for size
+opt-level = "z"
 panic = "abort"

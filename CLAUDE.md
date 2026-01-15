@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kitchn is a system-wide theming tool that unifies configuration across your Linux desktop ecosystem. The core concept is "Single Source of Truth" - edit one central configuration and propagate changes to all applications via Tera templates.
+hyprink is a system-wide theming tool that unifies configuration across your Linux desktop ecosystem. The core concept is "Single Source of Truth" - edit one central configuration (`~/.config/hypr/hyprink.conf`) and propagate changes to all applications via Tera templates.
 
 ## Build Commands
 
@@ -12,74 +12,72 @@ Kitchn is a system-wide theming tool that unifies configuration across your Linu
 just build              # Build release binaries
 just install            # Full installation (config + build)
 just test               # Run all workspace tests
-just test-lib           # Test k-lib only
+just test-lib           # Test hi_core only
 just lint               # Clippy + format check
 just pre-commit         # Full pre-commit checks
-just bench-lib          # Benchmark k-lib
+just bench-lib          # Benchmark hi_core
 just examples           # Run all FFI examples (C++, Python, Rust)
-just stats              # Show project statistics (LOC, sizes)
 ```
 
 Single crate/test operations:
 ```bash
-cargo build -p k-lib
-cargo test -p k-lib
-cargo test -p k-lib -- test_name           # Run single test
-cargo test -p k-lib -- test_name --nocapture  # With stdout
+cargo build -p hi_core
+cargo test -p hi_core
+cargo test -p hi_core -- test_name           # Run single test
+cargo test -p hi_core -- test_name --nocapture  # With stdout
 ```
 
 ## Architecture
 
 ### Crate Dependency Graph
 ```
-kitchn (CLI binary)     k-log (logging binary)     k-ffi (C-ABI library)
-        └───────────────────┼───────────────────────────┘
-                            │
-                         k-lib (core logic)
+hyprink (CLI binary)                hi_ffi (C-ABI library)
+        └───────────────────────────────┘
+                    │
+                 hi_core (core logic)
 ```
 
 ### Crate Purposes
-- **k-lib** (`kitchn_lib`): All business logic - config loading, template processing, ingredient parsing, PastryDB (Sled-based storage), logging
-- **kitchn** (`kitchn_cli`): CLI wrapper with Clap-based argument parsing and commands in `src/commands/`
-- **k-log** (`kitchn_log`): Standalone logging CLI binary
-- **k-ffi** (`kitchn_ffi`): C-ABI compatible interface for embedding in C++/Python; generates `include/kitchn.h` via cbindgen
+- **hi_core**: All business logic - config loading, template processing, Store (bincode-based storage), logging via hyprlog
+- **hi_cli**: CLI wrapper with Clap-based argument parsing and commands in `src/commands/`
+- **hi_ffi**: C-ABI compatible interface for embedding in C++/Python; generates `include/hyprink.h` via cbindgen
 
 ### Rust Editions
-- k-lib, kitchn, k-log: **Edition 2024**
-- k-ffi: **Edition 2021** (for stable C-ABI)
+- hi_core, hi_cli: **Edition 2024**
+- hi_ffi: **Edition 2021** (for stable C-ABI)
 
-### Key Types in k-lib
-- `Cookbook`: Aggregated config (theme + icons + layout + dictionary)
-- `Ingredient`: Parsed .ing file representation
-- `PastryDB`: Sled/bincode-based ingredient storage
+### Key Types in hi_core
+- `Config`: Unified config from `hyprink.conf` (theme + icons + layout + presets)
+- `Template`: Parsed .tpl file representation
+- `Store`: bincode-based template storage
 - `ConfigError`: Typed error enum using thiserror
 
 ### Data Flow
-1. **Config**: TOML files → `Cookbook::load()` → binary cache (bincode)
-2. **Ingredients**: `.ing` file → `Ingredient::parse()` → `PastryDB::store()`
-3. **Cook**: `PastryDB::get_all()` → Tera render → target files → hook execution
+1. **Config**: `hyprink.conf` -> `Config::load()` -> binary cache (bincode)
+2. **Templates**: `.tpl` file -> `Template` -> `Store::add()`
+3. **Apply**: `Store::list()` -> Tera render -> target files -> hook execution
 
 ## Error Handling Pattern
 
-- Library code (k-lib): Use `thiserror` for typed error enums
-- Binary code (kitchn, k-log): Use `anyhow::Result` for propagation
+- Library code (hi_core): Use `thiserror` for typed error enums
+- Binary code (hi_cli): Use `anyhow::Result` for propagation
 
 ## Single Instance Policy
 
-Uses `flock()` on `~/.cache/kitchn/kitchn.lock` to prevent concurrent modifications. Debug viewer is exempt.
+Uses `flock()` on `~/.cache/hyprink/hyprink.lock` to prevent concurrent modifications. Debug viewer is exempt.
 
 ## Config Locations
 
-- User config: `~/.config/kitchn/`
-- Binary cache: `~/.cache/kitchn/pastry.bin`
-- Data/DB: `~/.local/share/kitchn/`
-- Logs: `~/.local/state/kitchn/logs/`
+- Config: `~/.config/hypr/hyprink.conf`
+- Binary cache: `~/.cache/hyprink/config.bin`
+- Data/DB: `~/.local/share/hyprink/`
+- Logs: via hyprlog (`~/.local/state/hyprlog/logs/`)
 
 ## FFI Development
 
 After changing FFI functions, regenerate the C header:
 ```bash
-cbindgen --config cbindgen.toml --crate k-ffi --output include/kitchn.h
+cbindgen --config crates/hi_ffi/cbindgen.toml --crate hi_ffi --output include/hyprink.h
 ```
 
 Test FFI examples:
@@ -92,18 +90,15 @@ just example-rust
 ## CLI Commands Reference
 
 ```bash
-kitchn stock <path>     # Install ingredient (.ing) or package (.bag)
-kitchn pantry           # List all stocked ingredients
-kitchn pantry clean     # Remove all ingredients from pantry
-kitchn cook             # Apply all ingredients (render templates + run hooks)
-kitchn wrap <dir>       # Package .ing files into a .bag archive
-kitchn bake             # Pre-compile configs into binary cache
-kitchn --debug          # Spawn debug viewer in separate terminal
+hyprink add <path>      # Add template (.tpl) or package (.pkg)
+hyprink list            # List all stored templates
+hyprink list clear      # Remove all templates from store
+hyprink apply           # Apply all templates (render + run hooks)
+hyprink pack <dir>      # Package .tpl files into a .pkg archive
+hyprink compile         # Pre-compile config into binary cache
+hyprink --debug         # Spawn debug viewer in separate terminal
 ```
 
-Logging CLI:
-```bash
-k-log <level> <scope> <msg>   # Ad-hoc log (e.g., k-log error SYSTEM "failed")
-k-log <preset>                # Use dictionary preset (e.g., k-log boot_ok)
-k-log <preset> --app MyApp    # Override app name for log path
-```
+## Logging
+
+hyprink uses hyprlog (hl_core) for logging. See the hyprlog project for log presets and configuration.

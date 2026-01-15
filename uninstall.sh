@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 # =============================================================================
-# Hyprcore Uninstall Script
+# hyprink Uninstall Script
 # Removes binaries, config, data and log directories
 # =============================================================================
 
 set -euo pipefail
 IFS=$'\n\t'
 
-# Fail fast on undefined variables and pipe failures
 shopt -s inherit_errexit 2>/dev/null || true
 
 # -----------------------------------------------------------------------------
 # Configuration
 # -----------------------------------------------------------------------------
-readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hyprcore"
-readonly DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprcore"
-readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hyprcore"
+readonly CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprink.conf"
+readonly CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hyprink"
+readonly DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprink"
+readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hyprink"
 readonly INSTALL_DIR="${HOME}/.local/bin"
+readonly LIB_DIR="${HOME}/.local/lib/hyprink"
+readonly INCLUDE_DIR="${HOME}/.local/include/hyprink"
 
 # Colors (Sweet Dracula palette - 24-bit true color)
 readonly GREEN=$'\033[38;2;80;250;123m'
@@ -46,7 +48,6 @@ die()     { error "$*"; exit 1; }
 # -----------------------------------------------------------------------------
 cleanup() {
     local exit_code=$?
-    # Add cleanup tasks here if needed
     exit "$exit_code"
 }
 trap cleanup EXIT
@@ -58,7 +59,7 @@ trap 'die "Interrupted"' INT TERM
 remove_if_exists() {
     local path="$1"
     local desc="$2"
-    
+
     if [[ -e "$path" ]]; then
         rm -rf "$path"
         success "Removed $desc"
@@ -71,20 +72,23 @@ remove_if_exists() {
 # Main
 # -----------------------------------------------------------------------------
 main() {
-    log "Starting Hyprcore uninstall"
-    
+    log "Starting hyprink uninstall"
+
     # Remove binaries
-    remove_if_exists "${INSTALL_DIR}/k-log" "k-log binary"
-    remove_if_exists "${INSTALL_DIR}/kitchn" "kitchn binary"
-    remove_if_exists "${INSTALL_DIR}/hyprcore" "hyprcore binary"
-    
+    remove_if_exists "${INSTALL_DIR}/hyprink" "hyprink binary"
+
+    # Remove libraries
+    remove_if_exists "$LIB_DIR" "library directory"
+    remove_if_exists "$INCLUDE_DIR" "include directory"
+
     # Remove directories
-    remove_if_exists "$CONFIG_DIR" "config directory"
+    remove_if_exists "$CONFIG_FILE" "config file"
+    remove_if_exists "$CACHE_DIR" "cache directory"
     remove_if_exists "$DATA_DIR" "data directory"
     remove_if_exists "$STATE_DIR" "state directory"
-    
+
     echo ""
-    echo -e "${PURPLE}[hyprcore]${NC} ${CHECK}  Uninstall complete"
+    echo -e "${PURPLE}[hyprink]${NC} ${CHECK}  Uninstall complete"
 }
 
 main "$@"

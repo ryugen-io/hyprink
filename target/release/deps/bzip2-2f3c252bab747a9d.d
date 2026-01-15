@@ -1,0 +1,11 @@
+/code/git/ryugen-io/hyprink/target/release/deps/bzip2-2f3c252bab747a9d.d: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/mem.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/bufread.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/read.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/write.rs
+
+/code/git/ryugen-io/hyprink/target/release/deps/libbzip2-2f3c252bab747a9d.rlib: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/mem.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/bufread.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/read.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/write.rs
+
+/code/git/ryugen-io/hyprink/target/release/deps/libbzip2-2f3c252bab747a9d.rmeta: /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/lib.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/mem.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/bufread.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/read.rs /home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/write.rs
+
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/lib.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/mem.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/bufread.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/read.rs:
+/home/ryu/.local/share/cargo/registry/src/index.crates.io-1949cf8c6b5b557f/bzip2-0.5.2/src/write.rs:

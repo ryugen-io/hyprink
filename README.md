@@ -1,95 +1,74 @@
-# Kitchn
-![Kitchn Header](assets/images/header.svg)
+# hyprink
 
 **Strict Corporate Design Enforcement for your System.**
 
 > "Single Source of Truth". One config change propagates to Shells, Scripts, Logs, GUIs, and TUI apps instantly.
 > Now with C-API support for C++, Python, and more.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/🦀_Rust-2024-8be9fd?style=flat-square&labelColor=282a36" alt="Rust 2024">
-  <img src="https://img.shields.io/badge/🍳_Recipe-Tera_Templates-bd93f9?style=flat-square&labelColor=282a36" alt="Tera Templates">
-  <img src="https://img.shields.io/badge/🥧_Pastry-Binary_Cache-ffb86c?style=flat-square&labelColor=282a36" alt="PastryDB">
-  <img src="https://img.shields.io/badge/🔌_FFI-C--ABI-ff79c6?style=flat-square&labelColor=282a36" alt="C-ABI">
-  <img src="https://img.shields.io/badge/📜_License-MIT-50fa7b?style=flat-square&labelColor=282a36" alt="MIT License">
-</p>
-
 ---
 
-##  Mission
+## Mission
 
-Kitchn unifies the theming and configuration of your entire ecosystem (e.g., Hyprland, Waybar, Alacritty). Instead of editing 10 different config files to change a color or font, you edit **one** central configuration. Kitchn then propagates these changes to all your installed applications ("Ingredients") via powerful templates.
+hyprink unifies the theming and configuration of your entire ecosystem (e.g., Hyprland, Waybar, Alacritty). Instead of editing 10 different config files to change a color or font, you edit **one** central configuration. hyprink then propagates these changes to all your installed applications ("Templates") via powerful Tera templates.
 
-With the new **C-ABI Compatible Core**, Kitchn is no longer just a CLI tool—it's a system-wide SDK that can be embedded into any application.
+With the **C-ABI Compatible Core**, hyprink is no longer just a CLI tool - it's a system-wide SDK that can be embedded into any application.
 
-##  Installation
+## Installation
 
 ### Option A: One-liner (Recommended)
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ryugen-io/kitchN/master/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/ryugen-io/hyprink/master/install.sh | bash
 ```
 
-### Option B: Specific Version
+### Option B: From Source
 ```bash
-curl -fsSL https://raw.githubusercontent.com/ryugen-io/kitchN/master/install.sh | bash -s -- v0.2.0
-```
-
-### Option C: From Source
-```bash
-git clone https://github.com/ryugen-io/kitchN.git
-cd kitchn
+git clone https://github.com/ryugen-io/hyprink.git
+cd hyprink
 just install
 ```
 
-### Option D: Manual Download
-Download the latest release from the [Releases page](https://github.com/ryugen-io/kitchN/releases), extract and run:
-```bash
-tar xzf kitchn-v*.tar.gz
-cd kitchn-v*/
-./install.sh
-```
-
 All methods will:
-1.  Create `~/.config/kitchn/` with default configurations.
-2.  Install binaries (`kitchn`, `kitchn-log`) to `~/.local/bin/`.
-3.  Install FFI library (`libkitchn_ffi.so`) to `~/.local/lib/kitchn/`.
+1. Create `~/.config/hypr/hyprink.conf` with default configuration.
+2. Install binary (`hyprink`) to `~/.local/bin/`.
+3. Install FFI library (`libhi_ffi.so`) to `~/.local/lib/hyprink/`.
 
-> [!IMPORTANT]
 > Ensure `~/.local/bin` is in your `$PATH`.
 
 ---
 
-##  Quick Start
+## Quick Start
 
 Get up and running in 3 steps:
 
 ```bash
-# 1. Install Kitchn
-curl -fsSL https://raw.githubusercontent.com/ryugen-io/kitchN/master/install.sh | bash
+# 1. Install hyprink
+curl -fsSL https://raw.githubusercontent.com/ryugen-io/hyprink/master/install.sh | bash
 
-# 2. Stock an example ingredient
-kitchn stock ./assets/ingredients/waybar.ing
+# 2. Add an example template
+hyprink add ./assets/templates/waybar.tpl
 
-# 3. Apply all ingredients
-kitchn cook
+# 3. Apply all templates
+hyprink apply
 ```
 
 ### Typical Workflow
 
-1. **Edit your theme** in `~/.config/kitchn/theme.toml`
-2. **Run** `kitchn cook` to apply changes
+1. **Edit your config** in `~/.config/hypr/hyprink.conf`
+2. **Run** `hyprink apply` to apply changes
 3. **Done!** All configured apps update automatically
 
-### Creating Your Own Ingredient
+### Creating Your Own Template
 
 ```bash
-# Create a new ingredient file
-cat > my-app.ing << 'EOF'
-[package]
+# Create a new template file
+cat > my-app.tpl << 'EOF'
+[manifest]
 name = "my-app-theme"
 version = "0.1.0"
+authors = ["Your Name"]
+description = "My app theming"
 
-[[templates]]
+[[targets]]
 target = "~/.config/my-app/colors.conf"
 content = """
 background = "{{ colors.bg }}"
@@ -101,9 +80,9 @@ accent = "{{ colors.primary }}"
 reload = "pkill -USR1 my-app"
 EOF
 
-# Stock and cook
-kitchn stock my-app.ing
-kitchn cook
+# Add and apply
+hyprink add my-app.tpl
+hyprink apply
 ```
 
 ---
@@ -113,108 +92,46 @@ kitchn cook
 ```bash
 .
 ├── crates/
-├── crates/
-│   ├── k-lib/           # Core Logic (Rust 2024)
-│   ├── k-ffi/           # FFI Interface (Rust 2021, C-ABI)
-│   ├── k-bin/           # CLI wrapper (`kitchn`)
-│   └── k-log/           # Logging CLI (`kitchn-log`)
-├── include/             # Generated C headers (kitchn.h)
+│   ├── hi_core/         # Core Logic (Rust 2024)
+│   ├── hi_ffi/          # FFI Interface (Rust 2021, C-ABI)
+│   └── hi_cli/          # CLI wrapper (`hyprink`)
+├── include/             # Generated C headers (hyprink.h)
 ├── assets/
-│   ├── ingredients/     # Example .ing files
-│   ├── examples/        # C++, Python, Rust integration examples
+│   ├── templates/       # Example .tpl files
+│   └── examples/        # C++, Python, Rust integration examples
 ├── Cargo.toml           # Workspace config
 └── justfile             # Command runner
 ```
 
-###  Core Architecture
+### Core Architecture
 
-```mermaid
-graph TD
-    %% Nodes
-    CLI(k-bin <br> Binary)
-    Log(k-log <br> Binary)
-    Lib(k-lib <br> Rust Crate)
-    FFI(k-ffi <br> Rust Crate)
-    Headers(kitchn.h <br> C Header)
-    DB[(Pastry DB <br> Sled/KV)]
-    Config[Configuration <br> TOML]
-    
-    %% Relationships
-    CLI -->|Uses| Lib
-    CLI -->|Invokes| Log
-    CLI -->|Reads| Config
-    Lib -->|Manages| DB
-    Log -->|Uses| Config
-    FFI -->|Exposes| Lib
-    FFI -->|Generates| Headers
-    
-    %% Subgraphs for logic
-    subgraph Core Logic
-        Lib
-        DB
-    end
-    
-    subgraph Interfaces
-        CLI
-        FFI
-        Headers
-    end
-    
-    subgraph Support
-        Log
-        Config
-    end
-    
-    %% Styling
-    style CLI fill:#f9f,stroke:#333,stroke-width:2px,color:#000
-    style Lib fill:#bbf,stroke:#333,stroke-width:4px,color:#000
-    style FFI fill:#bfb,stroke:#333,stroke-width:2px,color:#000
-    style DB fill:#ff9,stroke:#333,stroke-width:1px,color:#000
-    style Log fill:#fbb,stroke:#333,stroke-width:1px,color:#000
-```
--   **Logic**: `k-lib` (Rust 2024) handles all processing, rendering, and logic.
--   **Interface**: `k-ffi` (Rust 2021) provides a stable C-ABI and auto-generates `kitchn.h` using `cbindgen`.
--   **Storage**: Ingredients are ingested into a high-performance **binary database** (`pastry.bin`) located in `~/.local/share/kitchn/`, ensuring instant access and clean storage.
-
-###  The "Sweet Dracula" Standard
-
-Kitchn enforces a strict, vibrant Dracula palette across your system:
-
-| Color | Hex | Role | Usage |
-|-------|-----|------|-------|
-| ![#282a36](https://placehold.co/15x15/282a36/282a36.png) **Background** | `#282a36` | Canvas | Windows, Terminals, Editors |
-| ![#44475a](https://placehold.co/15x15/44475a/44475a.png) **Current** | `#44475a` | Selection | Active lines, Hover states |
-| ![#f8f8f2](https://placehold.co/15x15/f8f8f2/f8f8f2.png) **Foreground** | `#f8f8f2` | Text | Main content text |
-| ![#bd93f9](https://placehold.co/15x15/bd93f9/bd93f9.png) **Purple** | `#bd93f9` | Primary | Accents, Borders, Keywords |
-| ![#ff79c6](https://placehold.co/15x15/ff79c6/ff79c6.png) **Pink** | `#ff79c6` | Secondary | Highlights, Strings, Urgent |
-| ![#50fa7b](https://placehold.co/15x15/50fa7b/50fa7b.png) **Green** | `#50fa7b` | Success | Validations, ok, diff(+)|
-| ![#ff5555](https://placehold.co/15x15/ff5555/ff5555.png) **Red** | `#ff5555` | Error | Failures, deletions, diff(-) |
-| ![#ffb86c](https://placehold.co/15x15/ffb86c/ffb86c.png) **Orange** | `#ffb86c` | Warning | Constants, Escapes, Notes |
-| ![#8be9fd](https://placehold.co/15x15/8be9fd/8be9fd.png) **Cyan** | `#8be9fd` | Info | Metadata, Types, Links |
+- **Logic**: `hi_core` (Rust 2024) handles all processing, rendering, and logic.
+- **Interface**: `hi_ffi` (Rust 2021) provides a stable C-ABI and auto-generates `hyprink.h` using `cbindgen`.
+- **Storage**: Templates are stored in a high-performance **binary database** located in `~/.local/share/hyprink/`, ensuring instant access and clean storage.
 
 ---
 
-##  Integration & FFI
+## Integration & FFI
 
-`kitchn_lib` exposes a **C-ABI** compatible interface, allowing you to use Kitchn's configuration, logging, and packaging logic in other languages.
+`hi_ffi` exposes a **C-ABI** compatible interface, allowing you to use hyprink's configuration, logging, and packaging logic in other languages.
 
 ### C / C++
 Include the header and link against the library:
 ```cpp
-#include "kitchn.h"
+#include "hyprink.h"
 
-KitchnContext* ctx = kitchn_context_new();
-kitchn_context_set_app_name(ctx, "MyApp");
-kitchn_log_preset(ctx, "boot_ok", NULL);
-kitchn_context_free(ctx);
+HyprinkContext* ctx = hyprink_context_new();
+hyprink_context_set_app_name(ctx, "MyApp");
+hyprink_log_preset(ctx, "boot_ok", NULL);
+hyprink_context_free(ctx);
 ```
 
 ### Python
 Use `ctypes` to load the shared library:
 ```python
 import ctypes
-lib = ctypes.CDLL("libkitchn_ffi.so")
-ctx = lib.kitchn_context_new()
+lib = ctypes.CDLL("libhi_ffi.so")
+ctx = lib.hyprink_context_new()
 ```
 
 ### Examples
@@ -231,113 +148,91 @@ just example-rust
 
 ## Commands
 
-### Ingredient Management
+### Template Management
 ```bash
-# Install a single ingredient or .bag package
-kitchn stock ./assets/ingredients/waybar.ing
-kitchn stock ./my-theme.bag
+# Add a single template or .pkg package
+hyprink add ./assets/templates/waybar.tpl
+hyprink add ./my-theme.pkg
 
-# List all stocked ingredients
-kitchn pantry
+# List all stored templates
+hyprink list
 
-# Cook (apply) all ingredients to the system
-kitchn cook
+# Apply all templates to the system
+hyprink apply
 
-# Clean (remove) all ingredients from pantry
-kitchn pantry clean
+# Clear all templates from store
+hyprink list clear
 
-# Enable/Disable ingredients
-kitchn pantry disable waybar-theme
-kitchn pantry enable waybar-theme
+# Enable/Disable templates
+hyprink list disable waybar-theme
+hyprink list enable waybar-theme
 ```
 
 ### Packaging
 ```bash
-# Wrap multiple .ing files into a portable .bag package
-kitchn wrap ./my-ingredients/
+# Pack multiple .tpl files into a portable .pkg package
+hyprink pack ./my-templates/
 
 # Specify custom output path
-kitchn wrap ./my-ingredients/ --output ./my-theme.bag
+hyprink pack ./my-templates/ --output ./my-theme.pkg
 ```
 
 ### Performance Optimization
 ```bash
-# Pre-compile config files into binary format for faster startup
-kitchn bake
+# Pre-compile config file into binary format for faster startup
+hyprink compile
 ```
 
-> [!TIP]
-> Run `kitchn bake` after changing your configuration files (`theme.toml`, `icons.toml`, etc.) to cache them for instant loading.
-
-### Logging
-```bash
-# Ad-hoc logging
-kitchn-log error SYSTEM "Database connection failed"
-
-# Using a preset
-kitchn-log boot_ok
-```
-
-#### App-Scoped Logging
-You can configure Kitchn to organize logs by application name in `layout.toml`:
-```toml
-path_structure = "{year}/{month}/{app}/{scope}"
-app_name = "kitchn" # Default app name
-```
-
-Override the app name via CLI:
-```bash
-kitchn-log boot_ok --app MyApp
-```
+> Run `hyprink compile` after changing your configuration file to cache it for instant loading.
 
 ---
 
-##  Debugging
+## Debugging
 
-Kitchn includes a powerful debug mode to diagnose failing hooks or configuration issues.
+hyprink includes a powerful debug mode to diagnose failing hooks or configuration issues.
 
 ```bash
-kitchn --debug
+hyprink --debug
 ```
 
-This will spawn a **separate terminal window** (prioritizing `rio`, `alacritty`, `kitty`) that streams verbose logs, including:
+This will spawn a **separate terminal window** that streams verbose logs, including:
 - Exact commands executed by hooks
-- Stdout/Stderr from hooks (even if empty)
+- Stdout/Stderr from hooks
 - Configuration files loaded
 - Tera template context keys
 
 You can also attach it to specific commands:
 ```bash
-kitchn cook --debug
-kitchn bake --debug
+hyprink apply --debug
+hyprink compile --debug
 ```
 
 ---
 
-##  Robustness
+## Robustness
 
-Kitchn enforces a **Single Instance Policy** using OS-level file locking (`flock`). This ensures that only one instance manages the pantry or system configuration at a time, preventing database corruption and conflicts.
+hyprink enforces a **Single Instance Policy** using OS-level file locking (`flock`). This ensures that only one instance manages the store or system configuration at a time, preventing database corruption and conflicts.
 
--   **Automatic Cleanup**: If Kitchn crashes, the kernel releases the lock immediately.
--   **Non-Blocking**: A second instance will fail immediately with a clear error message instead of hanging.
--   **Debug Exception**: The debug viewer (`kitchn --debug`) is exempt and can run in parallel.
+- **Automatic Cleanup**: If hyprink crashes, the kernel releases the lock immediately.
+- **Non-Blocking**: A second instance will fail immediately with a clear error message instead of hanging.
+- **Debug Exception**: The debug viewer (`hyprink --debug`) is exempt and can run in parallel.
 
 ---
 
-##  Ingredients (`.ing`)
+## Templates (`.tpl`)
 
-An **Ingredient** is a single TOML file that teaches Kitchn how to theme a specific application. Ingredients are **ingested** into the `PastryDB` upon installation, meaning you don't need to keep the original files.
+A **Template** is a single TOML file that teaches hyprink how to theme a specific application. Templates are stored in the database upon installation.
 
 ### Structure
 ```toml
-[package]
+[manifest]
 name = "waybar-theme"
 version = "0.1.0"
 authors = ["Your Name <you@example.com>"]
 description = "Waybar styling integration"
 license = "MIT"
 
-[[templates]]
+[[targets]]
 target = "~/.config/waybar/style.css"
 content = """
 * {
@@ -354,205 +249,137 @@ window#waybar {
 reload = "pkill -SIGUSR2 waybar"
 ```
 
-### Package Fields
+### Manifest Fields
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `name` | Yes | Unique identifier for the ingredient |
+| `name` | Yes | Unique identifier for the template |
 | `version` | Yes | Semantic version (e.g., `0.1.0`) |
-| `authors` | No | List of author names and emails |
-| `description` | No | Short description of what this ingredient themes |
+| `authors` | Yes | List of author names |
+| `description` | Yes | Short description |
 | `license` | No | License identifier (e.g., `MIT`, `GPL-3.0`) |
 | `ignored` | No | Set to `true` to disable without deleting (Default: `false`) |
 
 ---
 
-##  Bags (`.bag`)
+## Packages (`.pkg`)
 
-A **Bag** is a portable zip archive containing multiple `.ing` files. Use bags to distribute complete theme collections.
+A **Package** is a portable zip archive containing multiple `.tpl` files. Use packages to distribute complete theme collections.
 
-### Creating a Bag
+### Creating a Package
 ```bash
-# Package all .ing files from a directory
-kitchn wrap ./my-theme-ingredients/
+# Package all .tpl files from a directory
+hyprink pack ./my-theme-templates/
 
-# Creates: my-theme-ingredients.bag
+# Creates: my-theme-templates.pkg
 ```
 
-### Installing a Bag
+### Installing a Package
 ```bash
-# Extract and stock all ingredients from a bag
-kitchn stock ./my-theme.bag
+# Extract and add all templates from a package
+hyprink add ./my-theme.pkg
 ```
 
-> [!NOTE]
-> Bags are simply ZIP files with a `.bag` extension. You can inspect their contents with any archive tool.
+> Packages are simply ZIP files with a `.pkg` extension. You can inspect their contents with any archive tool.
 
 ---
 
-##  Template Variables
+## Template Variables
 
-Ingredients use the [Tera](https://keats.github.io/tera/) templating engine. The following variables are available:
+Templates use the [Tera](https://keats.github.io/tera/) templating engine. The following variables are available:
 
 ### Colors (`colors.*`)
-All colors defined in `theme.toml`:
+All colors defined in `hyprink.conf`:
 ```
-{{ colors.bg }}         → #161925
-{{ colors.fg }}         → #F8F8F2
-{{ colors.primary }}    → #BD93F9
-{{ colors.secondary }}  → #FF79C6
-{{ colors.success }}    → #50FA7B
-{{ colors.error }}      → #FF5555
-{{ colors.warn }}       → #FFB86C
-{{ colors.info }}       → #8BE9FD
+{{ colors.bg }}         -> #161925
+{{ colors.fg }}         -> #F8F8F2
+{{ colors.primary }}    -> #BD93F9
+{{ colors.secondary }}  -> #FF79C6
+{{ colors.success }}    -> #50FA7B
+{{ colors.error }}      -> #FF5555
+{{ colors.warn }}       -> #FFB86C
+{{ colors.info }}       -> #8BE9FD
 ```
 
 ### Fonts (`fonts.*`)
 ```
-{{ fonts.mono }}        → JetBrainsMono Nerd Font
-{{ fonts.ui }}          → Roboto
-{{ fonts.size_mono }}   → 10
-{{ fonts.size_ui }}     → 11
+{{ fonts.mono }}        -> JetBrainsMono Nerd Font
+{{ fonts.ui }}          -> Roboto
+{{ fonts.size_mono }}   -> 10
+{{ fonts.size_ui }}     -> 11
 ```
 
 ### Icons (`icons.*`)
-Icons from the active icon set (configured via `theme.toml`):
+Icons from the active icon set (configured in `hyprink.conf`):
 ```
-{{ icons.success }}     →  (or * in ASCII mode)
-{{ icons.error }}       →  (or ! in ASCII mode)
-{{ icons.warn }}        →
-{{ icons.info }}        →
-{{ icons.net }}         → 󰖩
-```
-
-### Tera Filters
-Kitchn provides custom filters for common transformations:
-
-| Filter | Input | Output | Use Case |
-|--------|-------|--------|----------|
-| `hex_to_rgb` | `#BD93F9` | `[189, 147, 249]` | JSON/Chrome themes |
-
-**Example:**
-```toml
-content = """
-{
-  "colors": {
-    "toolbar": {{ colors.bg | hex_to_rgb }}
-  }
-}
-"""
+{{ icons.success }}     ->  (or * in ASCII mode)
+{{ icons.error }}       ->  (or ! in ASCII mode)
+{{ icons.warn }}        ->
+{{ icons.info }}        ->
+{{ icons.net }}         -> 󰖩
 ```
 
 ---
 
-##  Configuration
+## Configuration
 
-Located in `~/.config/kitchn/`.
+Located at `~/.config/hypr/hyprink.conf` - a single file containing all settings.
 
-| File | Purpose |
-|------|---------|
-| `theme.toml` | Colors, fonts, and visual settings |
-| `icons.toml` | Icon sets (Nerd Font, ASCII fallback) |
-| `layout.toml` | Log message structure and formatting |
-| `dictionary.toml` | Pre-defined log message presets |
-
-You may split your configuration using `include = ["path/to/extra.toml"]`.
-
-### theme.toml
+### Example hyprink.conf
 ```toml
-[meta]
+[theme]
 name = "Sweet Dracula"
+active_icons = "nerdfont"
 
-[settings]
-active_icons = "nerdfont"  # or "ascii"
-
-[colors]
+[theme.colors]
 bg = "#161925"
 fg = "#F8F8F2"
 primary = "#BD93F9"
-# ... see full palette above
+# ... more colors
 
-[fonts]
+[theme.fonts]
 mono = "JetBrainsMono Nerd Font"
 ui = "Roboto"
 size_mono = "10"
 size_ui = "11"
-```
 
-### icons.toml
-```toml
-[nerdfont]
+[icons]
+[icons.nerdfont]
 success = ""
 error = ""
-warn = ""
-info = ""
+# ... more icons
 
-[ascii]
+[icons.ascii]
 success = "*"
 error = "!"
-warn = "!!"
-info = "i"
-```
+# ... more icons
 
-### layout.toml
-```toml
-[tag]
+[layout]
+[layout.tag]
 prefix = "["
 suffix = "]"
 transform = "lowercase"
 
-[labels]
-error = "error"
-success = "success"
-
-[structure]
+[layout.structure]
 terminal = "{tag} {scope} {icon} {msg}"
 file = "{timestamp} {tag} {msg}"
 
-[logging]
-base_dir = "~/.local/state/hyprcore/logs"
+[layout.logging]
+base_dir = "~/.local/state/hyprink/logs"
 path_structure = "{year}/{month}/{scope}"
-```
+filename_structure = "{level}.{year}-{month}-{day}.log"
+write_by_default = true
 
-### dictionary.toml
-Define reusable log presets:
-```toml
+# Presets
 [presets.boot_ok]
 level = "success"
 scope = "SYSTEM"
 msg = "startup complete"
-
-[presets.deploy_fail]
-level = "error"
-scope = "DEPLOY"
-msg = "deployment failed"
 ```
-
-Use presets via CLI:
-```bash
-kitchn-log boot_ok
-kitchn-log deploy_fail
-```
-
-### Rich Text in Messages
-Log messages support inline formatting tags:
-```toml
-msg = "Welcome to <primary>Kitchn</primary>! Status: <success>OK</success>"
-```
-
-| Tag | Effect |
-|-----|--------|
-| `<bold>` | Bold text |
-| `<primary>` | Primary color (purple) |
-| `<secondary>` | Secondary color (pink) |
-| `<success>` | Success color (green) |
-| `<error>` | Error color (red) |
-| `<warn>` | Warning color (orange) |
-| `<info>` | Info color (cyan) |
 
 ---
 
-##  Uninstall
+## Uninstall
 
 ```bash
 just uninstall

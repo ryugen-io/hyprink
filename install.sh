@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC2155
 # =============================================================================
-# Kitchn Install Script
+# hyprink Install Script
 # Sets up config directory, creates default configs, and installs binaries
 #
 # Usage:
 #   From source (in repo):  ./install.sh
 #   From release package:   ./install.sh
-#   Remote install:         curl -fsSL https://raw.githubusercontent.com/ryugen/kitchn/master/install.sh | bash
+#   Remote install:         curl -fsSL https://raw.githubusercontent.com/ryugen-io/hyprink/master/install.sh | bash
 #   Specific version:       curl -fsSL ... | bash -s -- v0.2.0
 # =============================================================================
 
@@ -21,47 +21,55 @@ shopt -s inherit_errexit 2>/dev/null || true
 # Configuration
 # -----------------------------------------------------------------------------
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
-readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/kitchn"
+readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
+readonly CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hyprink"
+readonly DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprink"
 readonly INSTALL_DIR="${HOME}/.local/bin"
-readonly LIB_DIR="${HOME}/.local/lib/kitchn"
-readonly INCLUDE_DIR="${HOME}/.local/include/kitchn"
+readonly LIB_DIR="${HOME}/.local/lib/hyprink"
+readonly INCLUDE_DIR="${HOME}/.local/include/hyprink"
 
 # GitHub Release Settings
-readonly REPO="ryugen/kitchn"
+readonly REPO="ryugen-io/hyprink"
 readonly GITHUB_API="https://api.github.com/repos/${REPO}/releases"
 
 # Installation mode: "source", "package", or "remote"
 INSTALL_MODE=""
 
-# Colors (Sweet Dracula palette - 24-bit true color)
-readonly GREEN=$'\033[38;2;80;250;123m'
-readonly YELLOW=$'\033[38;2;241;250;140m'
-readonly CYAN=$'\033[38;2;139;233;253m'
-readonly RED=$'\033[38;2;255;85;85m'
-readonly PURPLE=$'\033[38;2;189;147;249m'
-readonly NC=$'\033[0m'
-
-# Icons (Nerd Font)
-readonly CHECK=''
-readonly WARN=''
-readonly ERR=''
-readonly INFO_ICON=''
-
 # -----------------------------------------------------------------------------
-# Logging Functions
+# Logging - Source shared lib or use inline fallback
 # -----------------------------------------------------------------------------
-log()     { echo -e "${CYAN}[info]${NC} INSTALL  $*"; }
-success() { echo -e "${GREEN}[ok]${NC}   INSTALL  $*"; }
-warn()    { echo -e "${YELLOW}[warn]${NC} INSTALL  $*" >&2; }
-error()   { echo -e "${RED}[err]${NC}  INSTALL  $*" >&2; }
-die()     { error "$*"; exit 1; }
+if [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/dev/scripts/lib/log.sh" ]]; then
+    # shellcheck source=dev/scripts/lib/log.sh
+    source "${SCRIPT_DIR}/dev/scripts/lib/log.sh"
+    # Adapter functions for install script
+    log()     { log_info "INSTALL" "$*"; }
+    success() { log_ok "INSTALL" "$*"; }
+    warn()    { log_warn "INSTALL" "$*"; }
+    error()   { log_error "INSTALL" "$*"; }
+    die()     { log_error "INSTALL" "$*"; exit 1; }
+    header()  { log_step "INSTALL" "$*"; }
+else
+    # Inline fallback (for remote install / extracted packages)
+    readonly GREEN=$'\033[38;2;80;250;123m'
+    readonly YELLOW=$'\033[38;2;241;250;140m'
+    readonly CYAN=$'\033[38;2;139;233;253m'
+    readonly RED=$'\033[38;2;255;85;85m'
+    readonly PURPLE=$'\033[38;2;189;147;249m'
+    readonly NC=$'\033[0m'
+
+    log()     { echo -e "${CYAN}[info]${NC} INSTALL  $*"; }
+    success() { echo -e "${GREEN}[ok]${NC}   INSTALL  $*"; }
+    warn()    { echo -e "${YELLOW}[warn]${NC} INSTALL  $*" >&2; }
+    error()   { echo -e "${RED}[error]${NC} INSTALL  $*" >&2; }
+    die()     { error "$*"; exit 1; }
+    header()  { echo -e "${PURPLE}[hyprink]${NC} INSTALL  $*"; }
+fi
 
 # -----------------------------------------------------------------------------
 # Cleanup & Signal Handling
 # -----------------------------------------------------------------------------
 cleanup() {
     local exit_code=$?
-    # Add cleanup tasks here if needed
     exit "$exit_code"
 }
 trap cleanup EXIT
@@ -89,7 +97,7 @@ detect_install_mode() {
     if [[ -n "$SCRIPT_DIR" && -f "${SCRIPT_DIR}/Cargo.toml" ]]; then
         INSTALL_MODE="source"
     # Running from extracted release package?
-    elif [[ -n "$SCRIPT_DIR" && -d "${SCRIPT_DIR}/bin" && -f "${SCRIPT_DIR}/bin/kitchn" ]]; then
+    elif [[ -n "$SCRIPT_DIR" && -d "${SCRIPT_DIR}/bin" && -f "${SCRIPT_DIR}/bin/hyprink" ]]; then
         INSTALL_MODE="package"
     # Running via curl | bash (remote)
     else
@@ -112,24 +120,24 @@ get_latest_release() {
 download_release() {
     local version="$1"
     local arch="$2"
-    local url="https://github.com/${REPO}/releases/download/${version}/kitchn-${version}-${arch}.tar.gz"
+    local url="https://github.com/${REPO}/releases/download/${version}/hyprink-${version}-${arch}.tar.gz"
     local tmp_dir
     tmp_dir="$(mktemp -d)"
 
     log "Downloading ${url}..."
 
     if command_exists curl; then
-        curl -fsSL "$url" -o "${tmp_dir}/kitchn.tar.gz" || die "Download failed"
+        curl -fsSL "$url" -o "${tmp_dir}/hyprink.tar.gz" || die "Download failed"
     elif command_exists wget; then
-        wget -q "$url" -O "${tmp_dir}/kitchn.tar.gz" || die "Download failed"
+        wget -q "$url" -O "${tmp_dir}/hyprink.tar.gz" || die "Download failed"
     fi
 
     log "Extracting..."
-    tar -xzf "${tmp_dir}/kitchn.tar.gz" -C "$tmp_dir"
+    tar -xzf "${tmp_dir}/hyprink.tar.gz" -C "$tmp_dir"
 
     # Find extracted directory
     local pkg_dir
-    pkg_dir="$(find "$tmp_dir" -maxdepth 1 -type d -name 'kitchn-*' | head -1)"
+    pkg_dir="$(find "$tmp_dir" -maxdepth 1 -type d -name 'hyprink-*' | head -1)"
 
     if [[ -z "$pkg_dir" ]]; then
         die "Failed to extract release package"
@@ -151,27 +159,28 @@ create_dir() {
 write_config() {
     local file="$1"
     local content="$2"
-    
+
     if [[ -f "$file" ]]; then
         warn "Config exists, skipping: $(basename "$file")"
         return 0
     fi
-    
+
     log "Creating $(basename "$file")"
     printf '%s\n' "$content" > "$file" || die "Failed to write: $file"
     success "Created $(basename "$file")"
 }
 
 # -----------------------------------------------------------------------------
-# Config Templates
+# Config Template (single hyprink.conf)
 # -----------------------------------------------------------------------------
-THEME_CONFIG='[meta]
-name = "Sweet Dracula"
+HYPRINK_CONFIG='# hyprink.conf - Single Source of Truth for system theming
+# Location: ~/.config/hypr/hyprink.conf
 
-[settings]
+[theme]
+name = "Sweet Dracula"
 active_icons = "nerdfont"
 
-[colors]
+[theme.colors]
 bg = "#161925"
 fg = "#F8F8F2"
 cursor = "#8BE9FD"
@@ -185,7 +194,7 @@ success = "#50FA7B"
 error = "#FF5555"
 warn = "#F1FA8C"
 info = "#8BE9FD"
-kitchn = "#BD93F9"
+hyprink = "#BD93F9"
 summary = "#50FA7B"
 black = "#44475A"
 red = "#DE312B"
@@ -204,64 +213,66 @@ bright_magenta = "#FF79C6"
 bright_cyan = "#8BE9FD"
 bright_white = "#F8F8F2"
 
-[fonts]
+[theme.fonts]
 mono = "JohtoMono Nerd Font Mono"
 ui = "Roboto"
 size_mono = "10"
-size_ui = "11"'
+size_ui = "11"
 
-ICONS_CONFIG='[nerdfont]
-success = ""
-error = ""
-warn = ""
-info = ""
-kitchn = ""
-summary = ""
+[icons]
+[icons.nerdfont]
+success = ""
+error = ""
+warn = ""
+info = ""
+hyprink = ""
+summary = ""
 net = "󰖩"
 
-[ascii]
+[icons.ascii]
 success = "*"
 error = "!"
 warn = "!!"
 info = "i"
-kitchn = "K"
+hyprink = "H"
 summary = "="
-net = "#"'
+net = "#"
 
-LAYOUT_CONFIG='[tag]
+[layout]
+[layout.tag]
 prefix = "["
 suffix = "]"
 transform = "lowercase"
 min_width = 0
 alignment = "left"
 
-[labels]
+[layout.labels]
 error = "error"
 success = "success"
 info = "info"
 warn = "warn"
 
-[structure]
+[layout.structure]
 terminal = "{tag} {scope} {icon} {msg}"
 file = "{timestamp} {tag} {msg}"
 
-[logging]
-base_dir = "~/.local/state/kitchn/logs"
+[layout.logging]
+base_dir = "~/.local/state/hyprink/logs"
 path_structure = "{year}/{month}/{scope}"
 filename_structure = "{level}.{year}-{month}-{day}.log"
 timestamp_format = "%H:%M:%S"
-write_by_default = true'
+write_by_default = true
 
-DICTIONARY_CONFIG='# User Dictionary Overrides
-# The system defaults are embedded in the binary.
-# Add your custom presets here to override or extend them.
+# Presets - reusable log message definitions
+[presets.boot_ok]
+level = "success"
+scope = "SYSTEM"
+msg = "startup complete"
 
-# Example:
-# [presets.my_custom_hook]
-# level = "info"
-# msg = "hello world"
-
-[presets]
+[presets.deploy_fail]
+level = "error"
+scope = "DEPLOY"
+msg = "deployment failed"
 '
 
 # -----------------------------------------------------------------------------
@@ -276,19 +287,18 @@ install_from_source() {
     fi
 
     log "Building release binaries..."
-    # Explicitly build only kitchn and k-log binaries
-    if ! cargo build --release --bin kitchn --bin k-log 2>&1; then
+    if ! cargo build --release --bin hyprink 2>&1; then
         die "Build failed"
     fi
-    success "Binaries build complete"
+    success "Binary build complete"
 
     # Try building FFI library (optional, may fail on musl/alpine)
     log "Attempting to build FFI library (optional)..."
-    if cargo build --release -p k-ffi 2>&1; then
+    if cargo build --release -p hi_ffi 2>&1; then
         success "FFI library build complete"
     else
         warn "FFI build failed. Retrying with dynamic linking (for Musl/Alpine)..."
-        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p k-ffi 2>&1; then
+        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p hi_ffi 2>&1; then
              success "FFI library build complete (dynamic)"
         else
              warn "FFI library build failed (skipping). This is normal on strict static systems."
@@ -298,26 +308,23 @@ install_from_source() {
     # Compact binaries if UPX is available
     if command_exists upx; then
         log "Compacting binaries with UPX..."
-        compact_binary "target/release/kitchn"
-        compact_binary "target/release/k-log"
+        compact_binary "target/release/hyprink"
     fi
 
     # Install binaries
-    for bin in kitchn k-log; do
-        local src="target/release/${bin}"
-        [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
-    done
+    local src="target/release/hyprink"
+    [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
 
     # Install FFI library if it exists
-    if [[ -f "target/release/libk_ffi.so" ]]; then
+    if [[ -f "target/release/libhi_ffi.so" ]]; then
         create_dir "$LIB_DIR"
-        cp "target/release/libk_ffi.so" "$LIB_DIR/"
+        cp "target/release/libhi_ffi.so" "$LIB_DIR/"
     fi
 
     # Install C header if it exists
-    if [[ -f "include/kitchn.h" ]]; then
+    if [[ -f "include/hyprink.h" ]]; then
         create_dir "$INCLUDE_DIR"
-        cp "include/kitchn.h" "$INCLUDE_DIR/"
+        cp "include/hyprink.h" "$INCLUDE_DIR/"
     fi
 }
 
@@ -325,32 +332,26 @@ install_from_package() {
     local pkg_dir="$1"
 
     # Install binaries
-    for bin in kitchn k-log; do
-        local src="${pkg_dir}/bin/${bin}"
-        [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
-        chmod +x "${INSTALL_DIR}/${bin}"
-    done
+    local src="${pkg_dir}/bin/hyprink"
+    [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
+    chmod +x "${INSTALL_DIR}/hyprink"
 
     # Install FFI library if it exists
-    if [[ -f "${pkg_dir}/lib/libk_ffi.so" ]]; then
+    if [[ -f "${pkg_dir}/lib/libhi_ffi.so" ]]; then
         create_dir "$LIB_DIR"
-        cp "${pkg_dir}/lib/libk_ffi.so" "$LIB_DIR/"
+        cp "${pkg_dir}/lib/libhi_ffi.so" "$LIB_DIR/"
     fi
 
     # Install C header if it exists
-    if [[ -f "${pkg_dir}/include/kitchn.h" ]]; then
+    if [[ -f "${pkg_dir}/include/hyprink.h" ]]; then
         create_dir "$INCLUDE_DIR"
-        cp "${pkg_dir}/include/kitchn.h" "$INCLUDE_DIR/"
+        cp "${pkg_dir}/include/hyprink.h" "$INCLUDE_DIR/"
     fi
 
-    # Install configs from package if they exist
-    if [[ -d "${pkg_dir}/config" ]]; then
-        for cfg in theme.toml icons.toml layout.toml cookbook.toml; do
-            if [[ -f "${pkg_dir}/config/${cfg}" && ! -f "${CONFIG_DIR}/${cfg}" ]]; then
-                cp "${pkg_dir}/config/${cfg}" "${CONFIG_DIR}/"
-                success "Created ${cfg}"
-            fi
-        done
+    # Install config from package if it exists
+    if [[ -f "${pkg_dir}/config/hyprink.conf" && ! -f "${CONFIG_DIR}/hyprink.conf" ]]; then
+        cp "${pkg_dir}/config/hyprink.conf" "${CONFIG_DIR}/"
+        success "Created hyprink.conf"
     fi
 }
 
@@ -370,7 +371,7 @@ install_from_remote() {
         die "Could not determine release version"
     fi
 
-    log "Installing kitchn ${version} for ${arch}"
+    log "Installing hyprink ${version} for ${arch}"
 
     # Download and extract
     local pkg_dir
@@ -389,8 +390,7 @@ install_from_remote() {
 main() {
     local requested_version="${1:-}"
 
-    # Manual scope change to match standard header
-    echo -e "${PURPLE}[kitchn]${NC} INSTALL  starting installation"
+    header "starting installation"
 
     # Detect installation mode
     detect_install_mode
@@ -398,13 +398,12 @@ main() {
     # Create directories
     create_dir "$CONFIG_DIR"
     create_dir "$INSTALL_DIR"
+    create_dir "$CACHE_DIR"
+    create_dir "$DATA_DIR"
 
-    # Write config files (only in source/remote mode, package mode has its own)
+    # Write config file (only in source/remote mode, package mode has its own)
     if [[ "$INSTALL_MODE" != "package" ]]; then
-        write_config "${CONFIG_DIR}/theme.toml" "$THEME_CONFIG"
-        write_config "${CONFIG_DIR}/icons.toml" "$ICONS_CONFIG"
-        write_config "${CONFIG_DIR}/layout.toml" "$LAYOUT_CONFIG"
-        write_config "${CONFIG_DIR}/cookbook.toml" "$DICTIONARY_CONFIG"
+        write_config "${CONFIG_DIR}/hyprink.conf" "$HYPRINK_CONFIG"
     fi
 
     # Install based on mode
@@ -420,8 +419,12 @@ main() {
             ;;
     esac
 
-    # Manual scope change to match standard footer
-    echo -e "${GREEN}[summary]${NC} summary  installed successfully to $INSTALL_DIR"
+    # Use log_summary if available, else fallback
+    if type log_summary &>/dev/null; then
+        log_summary "summary" "installed successfully to $INSTALL_DIR"
+    else
+        echo -e "${GREEN}[summary]${NC} summary  installed successfully to $INSTALL_DIR"
+    fi
 
     # PATH check
     if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
@@ -430,8 +433,8 @@ main() {
     fi
 
     # Show installed version
-    if command_exists "${INSTALL_DIR}/kitchn"; then
-        log "Installed version: $("${INSTALL_DIR}/kitchn" --version 2>/dev/null || echo "unknown")"
+    if command_exists "${INSTALL_DIR}/hyprink"; then
+        log "Installed version: $("${INSTALL_DIR}/hyprink" --version 2>/dev/null || echo "unknown")"
     fi
 }
 
@@ -443,11 +446,11 @@ compact_binary() {
         local size_after=$(stat -c%s "$bin")
         local saved=$(( size_before - size_after ))
         local percent=$(( (saved * 100) / size_before ))
-        
+
         # Convert bytes to readable format
         local size_before_fmt=$(numfmt --to=iec-i --suffix=B "$size_before")
         local size_after_fmt=$(numfmt --to=iec-i --suffix=B "$size_after")
-        
+
         log "Optimized $(basename "$bin"): ${size_before_fmt} -> ${size_after_fmt} (-${percent}%)"
     fi
 }
