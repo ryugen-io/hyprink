@@ -1,6 +1,10 @@
-# hyprink
+<p align="center">
+  <img src="assets/header.svg" alt="hyprink" />
+</p>
 
-**Strict Corporate Design Enforcement for your System.**
+<p align="center">
+  <strong>Strict Corporate Design Enforcement for your System.</strong>
+</p>
 
 > "Single Source of Truth". One config change propagates to Shells, Scripts, Logs, GUIs, and TUI apps instantly.
 > Now with C-API support for C++, Python, and more.
