@@ -79,10 +79,4 @@ if [[ -f "${TARGET_DIR}/libhi_core.rlib" ]]; then
     log_info "$SCOPE" "libhi_core.rlib: ${size}"
 fi
 
-# FFI Library
-if [[ -f "${TARGET_DIR}/libhi_ffi.so" ]]; then
-    size=$(du -h "${TARGET_DIR}/libhi_ffi.so" | cut -f1)
-    log_info "$SCOPE" "libhi_ffi.so: ${size}"
-fi
-
 log_info "$SCOPE" "=== build.sh finished successfully ==="

@@ -16,7 +16,7 @@ readonly CONFIG_FILE="${XDG_CONFIG_HOME:-$HOME/.config}/hypr/hyprink.conf"
 readonly CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hyprink"
 readonly DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprink"
 readonly STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/hyprink"
-readonly INSTALL_DIR="${HOME}/.local/bin"
+readonly INSTALL_DIR="${HOME}/.local/bin/hypr"
 readonly LIB_DIR="${HOME}/.local/lib/hyprink"
 readonly INCLUDE_DIR="${HOME}/.local/include/hyprink"
 

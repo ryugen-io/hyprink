@@ -1,63 +1,51 @@
 use crate::args::ListCommands;
-use crate::logging::{log, log_msg};
+use crate::logging::{error, info};
 use anyhow::Result;
 use colored::*;
 use hi_core::config::Config;
 use hi_core::db::Store;
 
-pub fn execute(command: Option<ListCommands>, db: &mut Store, config: &Config) -> Result<()> {
+pub fn execute(command: Option<ListCommands>, db: &mut Store, _config: &Config) -> Result<()> {
     match command {
         Some(ListCommands::Clear) => {
             let count = db.list().len();
             if count == 0 {
-                log_msg(config, "store_empty", "store is already empty");
+                info("STORE", "store is already empty");
             } else {
                 db.clear();
                 db.save()?;
-                log_msg(
-                    config,
-                    "store_clear_ok",
-                    &format!("removed {} templates", count),
-                );
+                info("STORE", &format!("removed {} templates", count));
             }
         }
         Some(ListCommands::Enable { name }) => {
             if db.set_ignored(&name, false)? {
                 db.save()?;
-                log_msg(config, "store_ok", &format!("enabled template '{}'", name));
+                info("STORE", &format!("enabled template '{}'", name));
             } else {
-                log_msg(
-                    config,
-                    "store_fail",
-                    &format!("template '{}' not found", name),
-                );
+                error("STORE", &format!("template '{}' not found", name));
             }
         }
         Some(ListCommands::Disable { name }) => {
             if db.set_ignored(&name, true)? {
                 db.save()?;
-                log_msg(config, "store_ok", &format!("disabled template '{}'", name));
+                info("STORE", &format!("disabled template '{}'", name));
             } else {
-                log_msg(
-                    config,
-                    "store_fail",
-                    &format!("template '{}' not found", name),
-                );
+                error("STORE", &format!("template '{}' not found", name));
             }
         }
         None => {
-            list_store(db, config);
+            list_store(db);
         }
     }
     Ok(())
 }
 
-fn list_store(db: &Store, config: &Config) {
+fn list_store(db: &Store) {
     println!("{}", "\nStored Templates:\n".bold().underline());
 
     let templates = db.list();
     if templates.is_empty() {
-        log(config, "store_empty");
+        info("STORE", "No templates installed");
         return;
     }
 

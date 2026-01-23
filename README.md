@@ -7,15 +7,12 @@
 </p>
 
 > "Single Source of Truth". One config change propagates to Shells, Scripts, Logs, GUIs, and TUI apps instantly.
-> Now with C-API support for C++, Python, and more.
 
 ---
 
 ## Mission
 
 hyprink unifies the theming and configuration of your entire ecosystem (e.g., Hyprland, Waybar, Alacritty). Instead of editing 10 different config files to change a color or font, you edit **one** central configuration. hyprink then propagates these changes to all your installed applications ("Templates") via powerful Tera templates.
-
-With the **C-ABI Compatible Core**, hyprink is no longer just a CLI tool - it's a system-wide SDK that can be embedded into any application.
 
 ## Installation
 
@@ -34,7 +31,6 @@ just install
 All methods will:
 1. Create `~/.config/hypr/hyprink.conf` with default configuration.
 2. Install binary (`hyprink`) to `~/.local/bin/`.
-3. Install FFI library (`libhi_ffi.so`) to `~/.local/lib/hyprink/`.
 
 > Ensure `~/.local/bin` is in your `$PATH`.
 
@@ -97,12 +93,9 @@ hyprink apply
 .
 ├── crates/
 │   ├── hi_core/         # Core Logic (Rust 2024)
-│   ├── hi_ffi/          # FFI Interface (Rust 2021, C-ABI)
 │   └── hi_cli/          # CLI wrapper (`hyprink`)
-├── include/             # Generated C headers (hyprink.h)
 ├── assets/
-│   ├── templates/       # Example .tpl files
-│   └── examples/        # C++, Python, Rust integration examples
+│   └── templates/       # Example .tpl files
 ├── Cargo.toml           # Workspace config
 └── justfile             # Command runner
 ```
@@ -110,43 +103,7 @@ hyprink apply
 ### Core Architecture
 
 - **Logic**: `hi_core` (Rust 2024) handles all processing, rendering, and logic.
-- **Interface**: `hi_ffi` (Rust 2021) provides a stable C-ABI and auto-generates `hyprink.h` using `cbindgen`.
 - **Storage**: Templates are stored in a high-performance **binary database** located in `~/.local/share/hyprink/`, ensuring instant access and clean storage.
-
----
-
-## Integration & FFI
-
-`hi_ffi` exposes a **C-ABI** compatible interface, allowing you to use hyprink's configuration, logging, and packaging logic in other languages.
-
-### C / C++
-Include the header and link against the library:
-```cpp
-#include "hyprink.h"
-
-HyprinkContext* ctx = hyprink_context_new();
-hyprink_context_set_app_name(ctx, "MyApp");
-hyprink_log_preset(ctx, "boot_ok", NULL);
-hyprink_context_free(ctx);
-```
-
-### Python
-Use `ctypes` to load the shared library:
-```python
-import ctypes
-lib = ctypes.CDLL("libhi_ffi.so")
-ctx = lib.hyprink_context_new()
-```
-
-### Examples
-Run the built-in examples to see it in action:
-```bash
-just examples
-# OR specific ones:
-just example-cpp
-just example-python
-just example-rust
-```
 
 ---
 

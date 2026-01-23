@@ -82,7 +82,7 @@ fn process_template(
     tpl: &Template,
     tera: &mut Tera,
     ctx: &mut TeraContext,
-    config: &Config,
+    _config: &Config,
 ) -> Result<bool> {
     debug!(
         "Processing template targets and hooks for: {}",
@@ -105,43 +105,11 @@ fn process_template(
     if let Some(cmd) = &tpl.hooks.reload {
         debug!("Found reload hook requested: '{}'", cmd);
 
-        let (run_lvl, run_scope, run_msg) = config
-            .presets
-            .get("hook_run")
-            .map(|p| {
-                (
-                    p.level.as_str(),
-                    p.scope.as_deref().unwrap_or("HOOK"),
-                    p.msg.as_str(),
-                )
-            })
-            .unwrap_or(("secondary", "HOOK", "running hooks"));
+        let name = &tpl.manifest.name;
 
-        let (ok_lvl, ok_scope, ok_msg) = config
-            .presets
-            .get("hook_ok")
-            .map(|p| {
-                (
-                    p.level.as_str(),
-                    p.scope.as_deref().unwrap_or("HOOK"),
-                    p.msg.as_str(),
-                )
-            })
-            .unwrap_or(("success", "HOOK", "hooks executed"));
-
-        let (err_lvl, err_scope, err_msg) = config
-            .presets
-            .get("hook_fail")
-            .map(|p| {
-                (
-                    p.level.as_str(),
-                    p.scope.as_deref().unwrap_or("HOOK"),
-                    p.msg.as_str(),
-                )
-            })
-            .unwrap_or(("error", "HOOK", "hooks failed"));
-
-        logger::log_to_terminal(config, run_lvl, run_scope, run_msg);
+        // Log hook execution
+        let run_msg = format!("[{}] running: {}", name, cmd);
+        logger::info("HOOK", &run_msg);
 
         debug!("Executing hook via 'sh -c': {}", cmd);
         let start = std::time::Instant::now();
@@ -162,7 +130,8 @@ fn process_template(
             let s = String::from_utf8_lossy(&output.stdout);
             debug!("Hook stdout:\n{}", s.trim());
             for line in s.lines() {
-                logger::log_to_terminal(config, "info", run_scope, line);
+                let out_msg = format!("[{}] {}", name, line);
+                logger::info("HOOK", &out_msg);
             }
         }
 
@@ -170,14 +139,18 @@ fn process_template(
             let s = String::from_utf8_lossy(&output.stderr);
             debug!("Hook stderr:\n{}", s.trim());
             for line in s.lines() {
-                logger::log_to_terminal(config, "error", run_scope, line);
+                let err_msg = format!("[{}] {}", name, line);
+                logger::error("HOOK", &err_msg);
             }
         }
 
         if output.status.success() {
-            logger::log_to_terminal(config, ok_lvl, ok_scope, ok_msg);
+            let ok_msg = format!("[{}] ok: {}", name, cmd);
+            logger::info("HOOK", &ok_msg);
         } else {
-            logger::log_to_terminal(config, err_lvl, err_scope, err_msg);
+            let exit_code = output.status.code().unwrap_or(-1);
+            let fail_msg = format!("[{}] failed (exit {}): {}", name, exit_code, cmd);
+            logger::error("HOOK", &fail_msg);
             hooks_success = false;
         }
     }

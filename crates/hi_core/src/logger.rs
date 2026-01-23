@@ -1,73 +1,54 @@
-use crate::config::Config;
-use anyhow::Result;
-use hl_core::Level;
-use std::str::FromStr;
+use std::sync::OnceLock;
 
-// Re-export types from hl_core
-pub use hl_core::{CleanupOptions, CleanupResult, LogStats};
+// Re-export types from hyprlog
+pub use hyprlog::{CleanupOptions, CleanupResult, Level, LogStats};
 
-pub fn log_to_terminal(config: &Config, level: &str, scope: &str, msg: &str) {
-    let hl_level = Level::from_str(level).unwrap_or(Level::Info);
+static LOGGER: OnceLock<hyprlog::Logger> = OnceLock::new();
 
-    let template = &config.layout.structure.terminal;
-
-    let logger = hl_core::Logger::builder()
-        .terminal()
-        .colors(true)
-        .structure(template)
-        .done()
-        .build();
-
-    logger.log(hl_level, scope, msg);
+/// Get the global logger instance, initialized with default settings for hyprink.
+fn get_logger() -> &'static hyprlog::Logger {
+    LOGGER.get_or_init(|| {
+        hyprlog::Logger::builder()
+            .level(Level::Debug)
+            .terminal()
+            .colors(true)
+            .done()
+            .file()
+            .app_name("hyprink")
+            .done()
+            .json()
+            .app_name("hyprink")
+            .done()
+            .build()
+    })
 }
 
-pub fn log_to_file(
-    config: &Config,
-    level: &str,
-    scope: &str,
-    msg: &str,
-    app_override: Option<&str>,
-) -> Result<()> {
-    let hl_level = Level::from_str(level).unwrap_or(Level::Info);
-    let app_name = app_override.unwrap_or(&config.layout.logging.app_name);
-
-    let logger = hl_core::Logger::builder()
-        .file()
-        .base_dir(&config.layout.logging.base_dir)
-        .app_name(app_name)
-        .path_structure(&config.layout.logging.path_structure)
-        .filename_structure(&config.layout.logging.filename_structure)
-        .content_structure(&config.layout.structure.file)
-        .timestamp_format(&config.layout.logging.timestamp_format)
-        .done()
-        .build();
-
-    logger.log(hl_level, scope, msg);
-    Ok(())
+/// Log a message with the given level and scope.
+pub fn log(level: Level, scope: &str, msg: &str) {
+    get_logger().log(level, scope, msg);
 }
 
-pub fn cleanup(config: &Config, options: CleanupOptions) -> Result<CleanupResult> {
-    let base_dir = resolve_base_dir(&config.layout.logging.base_dir)?;
-    helpers::cleanup(&base_dir, &options).map_err(|e| anyhow::anyhow!("Cleanup error: {}", e))
+/// Log an info message.
+pub fn info(scope: &str, msg: &str) {
+    get_logger().info(scope, msg);
 }
 
-pub fn stats(config: &Config, app: Option<&str>) -> Result<LogStats> {
-    let base_dir = resolve_base_dir(&config.layout.logging.base_dir)?;
-    helpers::stats(&base_dir, app).map_err(|e| anyhow::anyhow!("Stats error: {}", e))
+/// Log a debug message.
+pub fn debug(scope: &str, msg: &str) {
+    get_logger().debug(scope, msg);
 }
 
-fn resolve_base_dir(base_dir_str: &str) -> Result<std::path::PathBuf> {
-    if base_dir_str.starts_with('~') {
-        let home = directories::UserDirs::new()
-            .ok_or_else(|| anyhow::anyhow!("Could not find home dir"))?;
-        Ok(std::path::PathBuf::from(
-            base_dir_str.replace('~', home.home_dir().to_str().unwrap()),
-        ))
-    } else {
-        Ok(std::path::PathBuf::from(base_dir_str))
-    }
+/// Log a warning message.
+pub fn warn(scope: &str, msg: &str) {
+    get_logger().warn(scope, msg);
 }
 
-mod helpers {
-    pub use hl_core::{cleanup, stats};
+/// Log an error message.
+pub fn error(scope: &str, msg: &str) {
+    get_logger().error(scope, msg);
+}
+
+/// Log a trace message.
+pub fn trace(scope: &str, msg: &str) {
+    get_logger().trace(scope, msg);
 }

@@ -29,19 +29,14 @@ if [[ -n "$CRATE" ]]; then
     echo ""
     cargo bloat --release -p "$CRATE" --crates
 else
-    log_info "$SCOPE" "analyzing all binaries in workspace"
-
-    for bin in hi_cli hi_ffi; do
-        log_step "$SCOPE" "analyzing: ${bin}"
-        log_info "$SCOPE" "executing: cargo bloat --release -p ${bin} --crates -n 10"
-        echo ""
-        if cargo bloat --release -p "$bin" --crates -n 10 2>/dev/null; then
-            log_ok "$SCOPE" "${bin} analysis complete"
-        else
-            log_warn "$SCOPE" "${bin} analysis failed (binary may not exist)"
-        fi
-        echo ""
-    done
+    log_info "$SCOPE" "analyzing hi_cli binary"
+    log_step "$SCOPE" "executing: cargo bloat --release -p hi_cli --crates -n 10"
+    echo ""
+    if cargo bloat --release -p hi_cli --crates -n 10 2>/dev/null; then
+        log_ok "$SCOPE" "hi_cli analysis complete"
+    else
+        log_warn "$SCOPE" "hi_cli analysis failed (binary may not exist)"
+    fi
 fi
 
 log_ok "$SCOPE" "bloat analysis complete"

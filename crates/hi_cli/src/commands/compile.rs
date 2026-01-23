@@ -1,18 +1,18 @@
-use crate::logging::{log, log_msg};
+use crate::logging::{debug, error, info};
 use anyhow::{Result, anyhow};
 use hi_core::config::{self, Config};
 use std::fs;
 
-pub fn execute(config: &Config) -> Result<()> {
-    log(config, "compile_start");
+pub fn execute(_config: &Config) -> Result<()> {
+    info("COMPILE", "Starting config compilation...");
 
     let conf_path = config::config_path();
     let cache_path = config::cache_file();
 
-    log_msg(config, "compile_scan", &conf_path.to_string_lossy());
+    debug("COMPILE", &format!("Scanning {}", conf_path.display()));
 
     if conf_path.exists() {
-        log_msg(config, "compile_file", "hyprink.conf");
+        debug("COMPILE", "Found hyprink.conf");
     }
 
     if cache_path.exists() {
@@ -21,19 +21,18 @@ pub fn execute(config: &Config) -> Result<()> {
 
     match Config::load_from_path(&conf_path) {
         Ok(new_config) => {
-            log_msg(config, "compile_save", &cache_path.to_string_lossy());
+            debug("COMPILE", &format!("Saving to {}", cache_path.display()));
             if let Err(e) = new_config.save_cache(&cache_path) {
-                log(config, "compile_fail");
+                error("COMPILE", "Failed to compile config");
                 return Err(anyhow!("Failed to save config cache: {}", e));
             }
-            log_msg(
-                config,
-                "compile_ok",
+            info(
+                "COMPILE",
                 &format!("compiled config to {}", cache_path.display()),
             );
         }
         Err(e) => {
-            log(config, "compile_fail");
+            error("COMPILE", "Failed to compile config");
             return Err(anyhow!("Failed to load configuration: {}", e));
         }
     }

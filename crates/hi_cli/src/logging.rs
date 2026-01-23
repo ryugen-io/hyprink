@@ -1,6 +1,5 @@
 use anyhow::{Context, Result};
 use colored::Colorize;
-use hi_core::config::Config;
 use hi_core::logger;
 use std::env;
 use std::fs;
@@ -10,35 +9,30 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::Mutex;
 use std::time::Duration;
-use tracing::{debug, warn};
 use tracing_subscriber::{EnvFilter, Layer, prelude::*};
 
-/// Helper to log using hi_core::logger directly
-pub fn log(config: &Config, preset_key: &str) {
-    if let Some(preset) = config.presets.get(preset_key)
-        && let Some(scope) = &preset.scope
-    {
-        logger::log_to_terminal(config, &preset.level, scope, &preset.msg);
-        tracing::info!(scope = scope, message = &preset.msg);
-
-        if config.layout.logging.write_by_default {
-            let _ = logger::log_to_file(config, &preset.level, scope, &preset.msg, None);
-        }
-    }
+/// Log an info message
+pub fn info(scope: &str, msg: &str) {
+    logger::info(scope, msg);
+    tracing::info!(scope = scope, message = msg);
 }
 
-/// Helper to log with custom msg
-pub fn log_msg(config: &Config, preset_key: &str, msg_override: &str) {
-    if let Some(preset) = config.presets.get(preset_key)
-        && let Some(scope) = &preset.scope
-    {
-        logger::log_to_terminal(config, &preset.level, scope, msg_override);
-        tracing::info!(scope = scope, message = msg_override);
+/// Log a debug message
+pub fn debug(scope: &str, msg: &str) {
+    logger::debug(scope, msg);
+    tracing::debug!(scope = scope, message = msg);
+}
 
-        if config.layout.logging.write_by_default {
-            let _ = logger::log_to_file(config, &preset.level, scope, msg_override, None);
-        }
-    }
+/// Log a warning message
+pub fn warn(scope: &str, msg: &str) {
+    logger::warn(scope, msg);
+    tracing::warn!(scope = scope, message = msg);
+}
+
+/// Log an error message
+pub fn error(scope: &str, msg: &str) {
+    logger::error(scope, msg);
+    tracing::error!(scope = scope, message = msg);
 }
 
 pub fn get_socket_path() -> PathBuf {
@@ -203,7 +197,7 @@ pub fn spawn_debug_viewer() -> Result<()> {
     });
 
     if let Some(term) = terminal {
-        debug!("Spawning debug viewer with: {}", term);
+        tracing::debug!("Spawning debug viewer with: {}", term);
         let self_exe = env::current_exe().context("Failed to get current executable path")?;
 
         let _ = Command::new(&term)
@@ -225,7 +219,7 @@ pub fn spawn_debug_viewer() -> Result<()> {
         }
         std::thread::sleep(Duration::from_millis(100));
     } else {
-        warn!("No supported terminal emulator found.");
+        tracing::warn!("No supported terminal emulator found.");
         println!("Cannot spawn debug terminal.");
     }
 

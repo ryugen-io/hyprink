@@ -16,7 +16,6 @@ just test-lib           # Test hi_core only
 just lint               # Clippy + format check
 just pre-commit         # Full pre-commit checks
 just bench-lib          # Benchmark hi_core
-just examples           # Run all FFI examples (C++, Python, Rust)
 ```
 
 Single crate/test operations:
@@ -31,20 +30,14 @@ cargo test -p hi_core -- test_name --nocapture  # With stdout
 
 ### Crate Dependency Graph
 ```
-hyprink (CLI binary)                hi_ffi (C-ABI library)
-        └───────────────────────────────┘
-                    │
-                 hi_core (core logic)
+hyprink (CLI binary)
+        │
+     hi_core (core logic)
 ```
 
 ### Crate Purposes
 - **hi_core**: All business logic - config loading, template processing, Store (bincode-based storage), logging via hyprlog
 - **hi_cli**: CLI wrapper with Clap-based argument parsing and commands in `src/commands/`
-- **hi_ffi**: C-ABI compatible interface for embedding in C++/Python; generates `include/hyprink.h` via cbindgen
-
-### Rust Editions
-- hi_core, hi_cli: **Edition 2024**
-- hi_ffi: **Edition 2021** (for stable C-ABI)
 
 ### Key Types in hi_core
 - `Config`: Unified config from `hyprink.conf` (theme + icons + layout + presets)
@@ -72,20 +65,6 @@ Uses `flock()` on `~/.cache/hyprink/hyprink.lock` to prevent concurrent modifica
 - Binary cache: `~/.cache/hyprink/config.bin`
 - Data/DB: `~/.local/share/hyprink/`
 - Logs: via hyprlog (`~/.local/state/hyprlog/logs/`)
-
-## FFI Development
-
-After changing FFI functions, regenerate the C header:
-```bash
-cbindgen --config crates/hi_ffi/cbindgen.toml --crate hi_ffi --output include/hyprink.h
-```
-
-Test FFI examples:
-```bash
-just example-cpp
-just example-python
-just example-rust
-```
 
 ## CLI Commands Reference
 

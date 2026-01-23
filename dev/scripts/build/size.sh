@@ -53,12 +53,6 @@ else
     log_info "$SCOPE" "no library artifact found (libhi_core.rlib)"
 fi
 
-if [[ -f "${RELEASE_DIR}/libhi_ffi.so" ]]; then
-    size=$(du -h "${RELEASE_DIR}/libhi_ffi.so" | cut -f1)
-    printf "%-20s %10s\n" "libhi_ffi.so" "$size"
-    log_ok "$SCOPE" "FFI library found"
-fi
-
 echo ""
 log_ok "$SCOPE" "found ${found} binary/binaries"
 log_info "$SCOPE" "=== size.sh finished successfully ==="

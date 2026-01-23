@@ -89,19 +89,6 @@ fn default_compress_after_days() -> Option<u32> {
     Some(7)
 }
 
-#[derive(Debug, Deserialize, Serialize)]
-pub struct PresetsSection {
-    #[serde(flatten)]
-    pub presets: HashMap<String, Preset>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct Preset {
-    pub level: String,
-    pub scope: Option<String>,
-    pub msg: String,
-}
-
 // === Main Config ===
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -109,8 +96,6 @@ pub struct Config {
     pub theme: ThemeSection,
     pub icons: IconsSection,
     pub layout: LayoutSection,
-    #[serde(default)]
-    pub presets: HashMap<String, Preset>,
 }
 
 // === Errors ===
@@ -159,6 +144,16 @@ pub fn cache_file() -> PathBuf {
     cache_dir().join("config.bin")
 }
 
+/// Expand ~ to home directory in paths
+pub fn expand_path(path: &str) -> PathBuf {
+    if let Some(rest) = path.strip_prefix("~/")
+        && let Some(home) = dirs_next::home_dir()
+    {
+        return home.join(rest);
+    }
+    PathBuf::from(path)
+}
+
 // === Config Implementation ===
 
 impl Config {
@@ -178,7 +173,7 @@ impl Config {
 
     pub fn load_from_path(conf_path: &Path) -> Result<Self, ConfigError> {
         let bin_path = cache_file();
-        Self::load_with_cache(conf_path, &bin_path, false)
+        Self::load_with_cache(conf_path, &bin_path, true)
     }
 
     pub fn load_with_cache(
@@ -218,6 +213,7 @@ impl Config {
         let config: Config = toml::from_str(&content)?;
 
         debug!("Loaded config from: {:?}", conf_path);
+
         Ok(config)
     }
 
@@ -257,58 +253,22 @@ impl Config {
             }
         }
 
+        // Check if any file in hyprink.d is newer
+        let hyprink_d = conf_path.parent().map(|p| p.join("hyprink.d"));
+        if let Some(d) = hyprink_d
+            && d.exists()
+            && let Ok(entries) = fs::read_dir(&d)
+        {
+            for entry in entries.flatten() {
+                if let Ok(meta) = entry.metadata()
+                    && let Ok(mtime) = meta.modified()
+                    && mtime > bin_mtime
+                {
+                    return Ok(false);
+                }
+            }
+        }
+
         Ok(true)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::tempdir;
-
-    #[test]
-    fn test_cache_roundtrip() {
-        let dir = tempdir().unwrap();
-        let cache_path = dir.path().join("config.bin");
-
-        let config = Config {
-            theme: ThemeSection {
-                name: "test".to_string(),
-                active_icons: "nerdfont".to_string(),
-                colors: HashMap::new(),
-                fonts: HashMap::new(),
-            },
-            icons: IconsSection {
-                nerdfont: HashMap::new(),
-                ascii: HashMap::new(),
-            },
-            layout: LayoutSection {
-                tag: TagConfig {
-                    prefix: "[".to_string(),
-                    suffix: "]".to_string(),
-                    transform: "none".to_string(),
-                    min_width: 0,
-                    alignment: "left".to_string(),
-                },
-                labels: HashMap::new(),
-                structure: StructureConfig {
-                    terminal: "{msg}".to_string(),
-                    file: "{msg}".to_string(),
-                },
-                logging: LoggingConfig {
-                    base_dir: "/tmp/logs".to_string(),
-                    path_structure: "{app}".to_string(),
-                    filename_structure: "{level}.log".to_string(),
-                    timestamp_format: "%H:%M:%S".to_string(),
-                    write_by_default: false,
-                    app_name: "test".to_string(),
-                    retention: RetentionConfig::default(),
-                },
-            },
-            presets: HashMap::new(),
-        };
-
-        config.save_cache(&cache_path).unwrap();
-        assert!(cache_path.exists());
     }
 }

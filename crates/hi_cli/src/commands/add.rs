@@ -1,4 +1,4 @@
-use crate::logging::log_msg;
+use crate::logging::info;
 use anyhow::{Context, Result, anyhow};
 use hi_core::config::Config;
 use hi_core::db::Store;
@@ -7,7 +7,7 @@ use std::fs;
 use std::io::Read;
 use std::path::Path;
 
-pub fn add_template(path: &Path, db: &mut Store, config: &Config) -> Result<Vec<Template>> {
+pub fn add_template(path: &Path, db: &mut Store, _config: &Config) -> Result<Vec<Template>> {
     let mut installed_list = Vec::new();
 
     if !path.exists() {
@@ -27,9 +27,8 @@ pub fn add_template(path: &Path, db: &mut Store, config: &Config) -> Result<Vec<
                     format!("Failed to parse template inside package: {}", file.name())
                 })?;
 
-                log_msg(
-                    config,
-                    "add_ok",
+                info(
+                    "ADD",
                     &format!("added {} v{}", tpl.manifest.name, tpl.manifest.version),
                 );
 
@@ -43,9 +42,8 @@ pub fn add_template(path: &Path, db: &mut Store, config: &Config) -> Result<Vec<
         let tpl: Template = toml::from_str(&content)
             .with_context(|| format!("Failed to parse template: {:?}", path))?;
 
-        log_msg(
-            config,
-            "add_ok",
+        info(
+            "ADD",
             &format!("added {} v{}", tpl.manifest.name, tpl.manifest.version),
         );
         let tpl_clone = tpl.clone();

@@ -41,7 +41,6 @@ fn mock_config() -> Config {
                 retention: RetentionConfig::default(),
             },
         },
-        presets: HashMap::new(),
     }
 }
 
@@ -98,4 +97,28 @@ fn test_processor_apply_hook_failure() {
         "Function should not error on hook failure, but return Ok(false)"
     );
     assert!(!result.unwrap(), "Hook should fail");
+}
+
+#[test]
+fn test_processor_apply_no_hooks() {
+    let config = mock_config();
+
+    let tpl = Template {
+        manifest: TemplateManifest {
+            name: "no_hooks".to_string(),
+            version: "0.1".to_string(),
+            authors: vec!["test".to_string()],
+            description: "test".to_string(),
+            repository: None,
+            license: None,
+            ignored: false,
+        },
+        targets: vec![],
+        files: vec![],
+        hooks: Hooks { reload: None },
+    };
+
+    let result = processor::apply(&tpl, &config, false);
+    assert!(result.is_ok());
+    assert!(result.unwrap(), "Should succeed when no hooks defined");
 }

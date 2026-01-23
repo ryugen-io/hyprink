@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["crates/hi_core", "crates/hi_ffi", "crates/hi_cli"]
+members = ["crates/hi_core", "crates/hi_cli"]
 exclude = ["assets/examples"]
 
 [profile.release]

@@ -24,9 +24,7 @@ readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd ||
 readonly CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/hypr"
 readonly CACHE_DIR="${XDG_CACHE_HOME:-$HOME/.cache}/hyprink"
 readonly DATA_DIR="${XDG_DATA_HOME:-$HOME/.local/share}/hyprink"
-readonly INSTALL_DIR="${HOME}/.local/bin"
-readonly LIB_DIR="${HOME}/.local/lib/hyprink"
-readonly INCLUDE_DIR="${HOME}/.local/include/hyprink"
+readonly INSTALL_DIR="${HOME}/.local/bin/hypr"
 
 # GitHub Release Settings
 readonly REPO="ryugen-io/hyprink"
@@ -292,19 +290,6 @@ install_from_source() {
     fi
     success "Binary build complete"
 
-    # Try building FFI library (optional, may fail on musl/alpine)
-    log "Attempting to build FFI library (optional)..."
-    if cargo build --release -p hi_ffi 2>&1; then
-        success "FFI library build complete"
-    else
-        warn "FFI build failed. Retrying with dynamic linking (for Musl/Alpine)..."
-        if RUSTFLAGS="-C target-feature=-crt-static" cargo build --release -p hi_ffi 2>&1; then
-             success "FFI library build complete (dynamic)"
-        else
-             warn "FFI library build failed (skipping). This is normal on strict static systems."
-        fi
-    fi
-
     # Compact binaries if UPX is available
     if command_exists upx; then
         log "Compacting binaries with UPX..."
@@ -314,18 +299,6 @@ install_from_source() {
     # Install binaries
     local src="target/release/hyprink"
     [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
-
-    # Install FFI library if it exists
-    if [[ -f "target/release/libhi_ffi.so" ]]; then
-        create_dir "$LIB_DIR"
-        cp "target/release/libhi_ffi.so" "$LIB_DIR/"
-    fi
-
-    # Install C header if it exists
-    if [[ -f "include/hyprink.h" ]]; then
-        create_dir "$INCLUDE_DIR"
-        cp "include/hyprink.h" "$INCLUDE_DIR/"
-    fi
 }
 
 install_from_package() {
@@ -335,18 +308,6 @@ install_from_package() {
     local src="${pkg_dir}/bin/hyprink"
     [[ -f "$src" ]] && cp "$src" "$INSTALL_DIR/" || die "Binary not found: $src"
     chmod +x "${INSTALL_DIR}/hyprink"
-
-    # Install FFI library if it exists
-    if [[ -f "${pkg_dir}/lib/libhi_ffi.so" ]]; then
-        create_dir "$LIB_DIR"
-        cp "${pkg_dir}/lib/libhi_ffi.so" "$LIB_DIR/"
-    fi
-
-    # Install C header if it exists
-    if [[ -f "${pkg_dir}/include/hyprink.h" ]]; then
-        create_dir "$INCLUDE_DIR"
-        cp "${pkg_dir}/include/hyprink.h" "$INCLUDE_DIR/"
-    fi
 
     # Install config from package if it exists
     if [[ -f "${pkg_dir}/config/hyprink.conf" && ! -f "${CONFIG_DIR}/hyprink.conf" ]]; then

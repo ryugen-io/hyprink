@@ -5,7 +5,7 @@ pub mod list;
 pub mod pack;
 
 use crate::args::Commands;
-use crate::logging::log_msg;
+use crate::logging::{info, warn};
 use anyhow::{Context, Result};
 use hi_core::config::{self, Config};
 use hi_core::db::Store;
@@ -24,9 +24,8 @@ pub fn process_command(cmd: Commands) -> Result<()> {
 
             for tpl in installed {
                 if tpl.manifest.ignored {
-                    log_msg(
-                        &config,
-                        "apply_skip",
+                    info(
+                        "APPLY",
                         &format!(
                             "ignoring <secondary>{}</secondary> (disabled)",
                             tpl.manifest.name
@@ -34,11 +33,7 @@ pub fn process_command(cmd: Commands) -> Result<()> {
                     );
                     continue;
                 }
-                log_msg(
-                    &config,
-                    "apply_start",
-                    &format!("applying {}", tpl.manifest.name),
-                );
+                info("APPLY", &format!("applying {}", tpl.manifest.name));
                 let _ = processor::apply(&tpl, &config, false)?;
             }
         }
@@ -58,17 +53,13 @@ pub fn process_command(cmd: Commands) -> Result<()> {
                 cli_conf.force_apply = !cli_conf.force_apply;
 
                 if cli_conf.force_apply {
-                    log_msg(&config, "info", "FORCE MODE ENABLED (persistent)");
+                    info("APPLY", "FORCE MODE ENABLED (persistent)");
                 } else {
-                    log_msg(&config, "info", "FORCE MODE DISABLED (persistent)");
+                    info("APPLY", "FORCE MODE DISABLED (persistent)");
                 }
 
                 if let Err(e) = cli_conf.save() {
-                    log_msg(
-                        &config,
-                        "error",
-                        &format!("Failed to save CLI config: {}", e),
-                    );
+                    warn("APPLY", &format!("Failed to save CLI config: {}", e));
                 }
 
                 if cli_conf.force_apply {
@@ -82,9 +73,8 @@ pub fn process_command(cmd: Commands) -> Result<()> {
                 match Config::load_no_cache() {
                     Ok(c) => c,
                     Err(e) => {
-                        log_msg(
-                            &config,
-                            "warn",
+                        warn(
+                            "APPLY",
                             &format!("Failed to reload config with no-cache: {}", e),
                         );
                         config
@@ -95,11 +85,7 @@ pub fn process_command(cmd: Commands) -> Result<()> {
             };
 
             if current_force {
-                log_msg(
-                    &final_config,
-                    "warn",
-                    "APPLYING WITH FORCE (Cache bypassed)",
-                );
+                warn("APPLY", "APPLYING WITH FORCE (Cache bypassed)");
             }
 
             apply::execute(&db, &final_config, current_force)?;

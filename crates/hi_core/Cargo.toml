@@ -21,7 +21,7 @@ anyhow = "1.0.100"
 chrono = "0.4.39"
 libc = "0.2.169"
 bincode = { version = "2.0.1", features = ["serde"] }
-hl_core = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main" }
+hyprlog = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
 
 [build-dependencies]
 

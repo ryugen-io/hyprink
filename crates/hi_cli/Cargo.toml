@@ -24,7 +24,7 @@ tracing-log = "0.2"
 which = "6.0"
 libc = "0.2.178"
 chrono = "0.4"
-hl_core = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main" }
+hyprlog = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
 
 [dev-dependencies]
 tempfile = "3.14.0"

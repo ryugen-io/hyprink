@@ -1,4 +1,4 @@
-use crate::logging::{log, log_msg};
+use crate::logging::{info, warn};
 use anyhow::Result;
 use hi_core::config::Config;
 use hi_core::db::Store;
@@ -7,7 +7,7 @@ use hi_core::processor;
 pub fn execute(db: &Store, config: &Config, force: bool) -> Result<()> {
     let templates = db.list();
     if templates.is_empty() {
-        log(config, "apply_empty");
+        info("APPLY", "No templates to apply");
         return Ok(());
     }
 
@@ -17,9 +17,8 @@ pub fn execute(db: &Store, config: &Config, force: bool) -> Result<()> {
 
     for tpl in templates {
         if tpl.manifest.ignored {
-            log_msg(
-                config,
-                "apply_skip",
+            info(
+                "APPLY",
                 &format!(
                     "ignoring <secondary>{}</secondary> (disabled)",
                     tpl.manifest.name
@@ -29,9 +28,8 @@ pub fn execute(db: &Store, config: &Config, force: bool) -> Result<()> {
             continue;
         }
 
-        log_msg(
-            config,
-            "apply_start",
+        info(
+            "APPLY",
             &format!("applying <primary>{}</primary>", tpl.manifest.name),
         );
         if !processor::apply(tpl, config, force)? {
@@ -42,18 +40,16 @@ pub fn execute(db: &Store, config: &Config, force: bool) -> Result<()> {
     let applied = total - skipped;
 
     if hook_failures > 0 {
-        log_msg(
-            config,
-            "apply_ok",
+        warn(
+            "APPLY",
             &format!(
                 "applied {} templates ({} skipped) but {} hooks failed",
                 applied, skipped, hook_failures
             ),
         );
     } else {
-        log_msg(
-            config,
-            "apply_ok",
+        info(
+            "APPLY",
             &format!("applied {} templates ({} skipped)", applied, skipped),
         );
     }
