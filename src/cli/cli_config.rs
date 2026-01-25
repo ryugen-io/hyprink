@@ -1,5 +1,5 @@
+use crate::config;
 use anyhow::{Context, Result};
-use hi_core::config;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::PathBuf;

@@ -1,7 +1,7 @@
-use crate::logging::info;
+use super::super::logging::info;
+use crate::config::Config;
+use crate::packager;
 use anyhow::Result;
-use hi_core::config::Config;
-use hi_core::packager;
 use std::path::PathBuf;
 
 pub fn execute(input: PathBuf, output: Option<PathBuf>, _config: &Config) -> Result<()> {

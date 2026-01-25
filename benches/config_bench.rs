@@ -1,5 +1,5 @@
 use criterion::{Criterion, black_box, criterion_group, criterion_main};
-use hi_core::config::Config;
+use hyprink::config::Config;
 use std::fs;
 use tempfile::tempdir;
 

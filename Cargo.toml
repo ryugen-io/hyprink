@@ -1,7 +1,73 @@
-[workspace]
-resolver = "2"
-members = ["crates/hi_core", "crates/hi_cli"]
-exclude = ["assets/examples"]
+[package]
+name = "hyprink"
+version = "0.1.0"
+edition = "2024"
+
+[features]
+default = ["cli"]
+cli = ["dep:clap", "dep:tracing", "dep:tracing-subscriber", "dep:tracing-appender", "dep:tracing-log", "dep:which", "dep:hyprdt"]
+
+[lib]
+name = "hyprink"
+
+[[bin]]
+name = "hyprink"
+path = "src/bin/hyprink.rs"
+required-features = ["cli"]
+
+[dependencies]
+# Core (always)
+log = "0.4"
+serde = { version = "1.0", features = ["derive"] }
+toml = "0.8"
+directories = "5.0"
+dirs-next = "2.0"
+colored = "2.2"
+thiserror = "2.0"
+lazy_static = "1.5"
+zip = "2.2"
+tera = "1.20"
+anyhow = "1.0"
+chrono = "0.4"
+libc = "0.2"
+bincode = { version = "2.0", features = ["serde"] }
+hyprlog = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
+hyprdt = { git = "ssh://git@github.com/ryugen-io/hyprdt.git", branch = "main", default-features = false, optional = true }
+
+# CLI (optional)
+clap = { version = "4.5", features = ["derive"], optional = true }
+tracing = { version = "0.1", optional = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"], optional = true }
+tracing-appender = { version = "0.2", optional = true }
+tracing-log = { version = "0.2", optional = true }
+which = { version = "6.0", optional = true }
+
+[dev-dependencies]
+tempfile = "3.14"
+criterion = { version = "0.5", features = ["html_reports"] }
+serde_json = "1.0"
+assert_cmd = "2.0"
+predicates = "3.1"
+
+[[bench]]
+name = "config_bench"
+harness = false
+
+[[bench]]
+name = "tera_bench"
+harness = false
+
+[[bench]]
+name = "pack_bench"
+harness = false
+
+[[bench]]
+name = "render_bench"
+harness = false
+
+[[bench]]
+name = "db_bench"
+harness = false
 
 [profile.release]
 lto = true

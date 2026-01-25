@@ -1,8 +1,8 @@
-use crate::logging::{info, warn};
+use super::super::logging::{info, warn};
+use crate::config::Config;
+use crate::db::Store;
+use crate::processor;
 use anyhow::Result;
-use hi_core::config::Config;
-use hi_core::db::Store;
-use hi_core::processor;
 
 pub fn execute(db: &Store, config: &Config, force: bool) -> Result<()> {
     let templates = db.list();

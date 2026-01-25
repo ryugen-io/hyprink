@@ -1,6 +1,6 @@
 use criterion::{BatchSize, Criterion, criterion_group, criterion_main};
-use hi_core::db::Store;
-use hi_core::template::{Template, TemplateManifest};
+use hyprink::db::Store;
+use hyprink::template::{Template, TemplateManifest};
 use tempfile::NamedTempFile;
 
 fn create_dummy_template(id: usize) -> Template {

@@ -44,9 +44,6 @@ pub enum Commands {
     },
     /// Compile config into binary cache for faster startup
     Compile,
-    /// Internal command to watch logs via socket (Hidden)
-    #[command(hide = true)]
-    InternalWatch { socket_path: PathBuf },
 }
 
 #[derive(Subcommand, Debug)]

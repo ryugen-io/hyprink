@@ -4,12 +4,12 @@ pub mod compile;
 pub mod list;
 pub mod pack;
 
-use crate::args::Commands;
-use crate::logging::{info, warn};
+use super::args::Commands;
+use super::logging::{info, warn};
+use crate::config::{self, Config};
+use crate::db::Store;
+use crate::processor;
 use anyhow::{Context, Result};
-use hi_core::config::{self, Config};
-use hi_core::db::Store;
-use hi_core::processor;
 
 pub fn process_command(cmd: Commands) -> Result<()> {
     let data_dir = config::data_dir();
@@ -44,7 +44,7 @@ pub fn process_command(cmd: Commands) -> Result<()> {
             toggle_force,
             force,
         } => {
-            use crate::cli_config::CliConfig;
+            use super::cli_config::CliConfig;
 
             let mut current_force = force;
 
@@ -96,7 +96,6 @@ pub fn process_command(cmd: Commands) -> Result<()> {
         Commands::Compile => {
             compile::execute(&config)?;
         }
-        Commands::InternalWatch { .. } => {}
     }
     Ok(())
 }

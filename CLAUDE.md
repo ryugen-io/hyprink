@@ -11,36 +11,49 @@ hyprink is a system-wide theming tool that unifies configuration across your Lin
 ```bash
 just build              # Build release binaries
 just install            # Full installation (config + build)
-just test               # Run all workspace tests
-just test-lib           # Test hi_core only
+just test               # Run all tests
 just lint               # Clippy + format check
 just pre-commit         # Full pre-commit checks
-just bench-lib          # Benchmark hi_core
+just bench              # Run all benchmarks
 ```
 
-Single crate/test operations:
+Single test operations:
 ```bash
-cargo build -p hi_core
-cargo test -p hi_core
-cargo test -p hi_core -- test_name           # Run single test
-cargo test -p hi_core -- test_name --nocapture  # With stdout
+cargo test -- test_name           # Run single test
+cargo test -- test_name --nocapture  # With stdout
 ```
 
 ## Architecture
 
-### Crate Dependency Graph
+### Single Crate Structure
 ```
-hyprink (CLI binary)
-        │
-     hi_core (core logic)
+hyprink/
+├── src/
+│   ├── lib.rs              # Library root
+│   ├── config.rs           # Config loading
+│   ├── template.rs         # Template parsing
+│   ├── db.rs               # Store (bincode-based storage)
+│   ├── processor.rs        # Tera rendering
+│   ├── packager.rs         # .pkg archive handling
+│   ├── logger.rs           # hyprlog integration
+│   ├── factory.rs          # Factory patterns
+│   ├── bin/
+│   │   └── hyprink.rs      # Binary entry point
+│   └── cli/
+│       ├── mod.rs          # CLI module root
+│       ├── args.rs         # Clap argument parsing
+│       ├── logging.rs      # CLI logging
+│       ├── cli_config.rs   # CLI-specific config
+│       └── commands/       # Subcommands
+└── benches/                # Benchmarks
 ```
 
-### Crate Purposes
-- **hi_core**: All business logic - config loading, template processing, Store (bincode-based storage), logging via hyprlog
-- **hi_cli**: CLI wrapper with Clap-based argument parsing and commands in `src/commands/`
+### Features
+- `default = ["cli"]` - CLI binary enabled by default
+- `cli` - Enables CLI dependencies (clap, tracing, etc.)
 
-### Key Types in hi_core
-- `Config`: Unified config from `hyprink.conf` (theme + icons + layout + presets)
+### Key Types
+- `Config`: Unified config from `hyprink.conf` (theme + icons + layout)
 - `Template`: Parsed .tpl file representation
 - `Store`: bincode-based template storage
 - `ConfigError`: Typed error enum using thiserror
@@ -52,8 +65,8 @@ hyprink (CLI binary)
 
 ## Error Handling Pattern
 
-- Library code (hi_core): Use `thiserror` for typed error enums
-- Binary code (hi_cli): Use `anyhow::Result` for propagation
+- Library code: Use `thiserror` for typed error enums
+- Binary code (cli): Use `anyhow::Result` for propagation
 
 ## Single Instance Policy
 
@@ -80,4 +93,4 @@ hyprink --debug         # Spawn debug viewer in separate terminal
 
 ## Logging
 
-hyprink uses hyprlog (hl_core) for logging. See the hyprlog project for log presets and configuration.
+hyprink uses hyprlog for logging. See the hyprlog project for log presets and configuration.

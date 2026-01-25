@@ -1,8 +1,8 @@
-use crate::logging::info;
+use super::super::logging::info;
+use crate::config::Config;
+use crate::db::Store;
+use crate::template::Template;
 use anyhow::{Context, Result, anyhow};
-use hi_core::config::Config;
-use hi_core::db::Store;
-use hi_core::template::Template;
 use std::fs;
 use std::io::Read;
 use std::path::Path;

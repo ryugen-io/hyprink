@@ -1,6 +1,6 @@
-use crate::logging::{debug, error, info};
+use super::super::logging::{debug, error, info};
+use crate::config::{self, Config};
 use anyhow::{Result, anyhow};
-use hi_core::config::{self, Config};
 use std::fs;
 
 pub fn execute(_config: &Config) -> Result<()> {

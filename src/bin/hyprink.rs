@@ -1,12 +1,8 @@
-mod args;
-mod cli_config;
-mod commands;
-mod logging;
-
 use anyhow::{Context, Result, anyhow};
-use args::{Cli, Commands};
 use clap::{CommandFactory, Parser};
-use logging::{init_logging, run_socket_watcher, spawn_debug_viewer};
+use hyprink::cli::args::Cli;
+use hyprink::cli::commands;
+use hyprink::cli::logging::{init_logging, spawn_debug_viewer};
 use std::env;
 use std::fs;
 use std::os::unix::io::AsRawFd;
@@ -15,17 +11,12 @@ use tracing::{debug, warn};
 fn main() -> Result<()> {
     let cli = Cli::parse();
 
-    // 1. Handle Internal Watcher (Server Mode)
-    if let Some(Commands::InternalWatch { socket_path }) = &cli.command {
-        return run_socket_watcher(socket_path);
-    }
-
-    // 2. If --debug, spawn viewer (Server) if needed
+    // If --debug, spawn hyprdt viewer if needed
     if cli.debug {
         spawn_debug_viewer()?;
     }
 
-    // 3. Init Logging (Client Mode)
+    // Init Logging
     let logging_enabled = init_logging(cli.debug)?;
 
     // Acquire global lock (clients only)
