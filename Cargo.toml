@@ -31,8 +31,8 @@ anyhow = "1.0"
 chrono = "0.4"
 libc = "0.2"
 bincode = { version = "2.0", features = ["serde"] }
-hyprlog = { git = "https://github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
-hyprdt = { git = "https://github.com/ryugen-io/hyprdt.git", branch = "main", default-features = false, optional = true }
+hyprlog = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
+hyprdt = { git = "ssh://git@github.com/ryugen-io/hyprdt.git", branch = "main", default-features = false, optional = true }
 
 # CLI (optional)
 clap = { version = "4.5", features = ["derive"], optional = true }

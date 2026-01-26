@@ -22,6 +22,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure git for public repos
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
+
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -56,6 +59,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure git for public repos
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
       - name: Install Rust toolchain (Nightly)
         uses: dtolnay/rust-toolchain@nightly

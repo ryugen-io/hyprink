@@ -355,7 +355,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
- "windows-sys 0.59.0",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
@@ -792,7 +792,7 @@ dependencies = [
 [[package]]
 name = "hyprdt"
 version = "0.1.0"
-source = "git+https://github.com/ryugen-io/hyprdt.git?branch=main#fa31a4b9e7fbe5a26f9e165551bbe5ed21cfe504"
+source = "git+ssh://git@github.com/ryugen-io/hyprdt.git?branch=main#fa31a4b9e7fbe5a26f9e165551bbe5ed21cfe504"
 dependencies = [
  "chrono",
  "colored",
@@ -837,7 +837,7 @@ dependencies = [
 [[package]]
 name = "hyprlog"
 version = "0.5.0"
-source = "git+https://github.com/ryugen-io/hyprlog.git?branch=main#c14d945e5c191ade03d190db2c611b197be4fb8e"
+source = "git+ssh://git@github.com/ryugen-io/hyprlog.git?branch=main#c14d945e5c191ade03d190db2c611b197be4fb8e"
 dependencies = [
  "chrono",
  "directories 6.0.0",
@@ -2084,7 +2084,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
