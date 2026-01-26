@@ -792,7 +792,7 @@ dependencies = [
 [[package]]
 name = "hyprdt"
 version = "0.1.0"
-source = "git+ssh://git@github.com/ryugen-io/hyprdt.git?branch=main#4214d982a5bbc20c525958eb2c5a076523f69012"
+source = "git+https://github.com/ryugen-io/hyprdt.git?branch=main#fa31a4b9e7fbe5a26f9e165551bbe5ed21cfe504"
 dependencies = [
  "chrono",
  "colored",
@@ -837,7 +837,7 @@ dependencies = [
 [[package]]
 name = "hyprlog"
 version = "0.5.0"
-source = "git+ssh://git@github.com/ryugen-io/hyprlog.git?branch=main#c14d945e5c191ade03d190db2c611b197be4fb8e"
+source = "git+https://github.com/ryugen-io/hyprlog.git?branch=main#c14d945e5c191ade03d190db2c611b197be4fb8e"
 dependencies = [
  "chrono",
  "directories 6.0.0",
