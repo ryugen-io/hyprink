@@ -27,13 +27,13 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             name: aarch64-linux
-          - target: aarch64-unknown-linux-musl
-            os: ubuntu-latest
-            name: aarch64-linux-musl
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Configure git for public repos
+        run: git config --global url."https://github.com/".insteadOf "ssh://git@github.com/"
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@nightly
@@ -46,31 +46,19 @@ jobs:
         with:
           target: ${{ matrix.target }}
 
-      - name: Install just
-        uses: extractions/setup-just@v2
-
-      - name: Build release binaries (Default)
-        if: (!contains(matrix.target, 'musl'))
+      - name: Build release binary
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Build release binaries (Musl - Skip FFI)
-        if: contains(matrix.target, 'musl')
-        run: cargo build --release --target ${{ matrix.target }} --bin kitchn --bin k-log
-
-      - name: Generate C header
-        run: |
-          cargo install cbindgen --locked
-          cbindgen --config crates/k-ffi/cbindgen.toml \
-                   --crate k-ffi \
-                   --output include/kitchn.h
-
       - name: Package release
-        run: just package ${{ matrix.target }} ${{ matrix.name }}
+        run: |
+          mkdir -p dist
+          cd target/${{ matrix.target }}/release
+          tar -czvf ../../../dist/hyprink-${{ github.ref_name }}-${{ matrix.name }}.tar.gz hyprink
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: kitchn-${{ matrix.name }}
+          name: hyprink-${{ matrix.name }}
           path: dist/*.tar.gz
           retention-days: 1
 
