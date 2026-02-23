@@ -31,6 +31,7 @@ anyhow = "1.0"
 chrono = "0.4"
 libc = "0.2"
 bincode = { version = "2.0", features = ["serde"] }
+hypr-conf = { git = "https://github.com/ryugen-io/hypr-conf.git", branch = "main" }
 hyprlog = { git = "ssh://git@github.com/ryugen-io/hyprlog.git", branch = "main", default-features = false }
 hyprdt = { git = "ssh://git@github.com/ryugen-io/hyprdt.git", branch = "main", default-features = false, optional = true }
 

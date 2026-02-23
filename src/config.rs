@@ -1,9 +1,17 @@
 use log::debug;
 use serde::{Deserialize, Serialize};
+use hypr_conf::{ConfigMetaSpec, file_matches, resolve_config_path_strict};
 use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+
+const TYPE_VALUE: &str = "theme";
+const CONFIG_EXTENSIONS: &[&str] = &["conf"];
+
+fn config_meta_spec() -> ConfigMetaSpec<'static> {
+    ConfigMetaSpec::for_type(TYPE_VALUE, CONFIG_EXTENSIONS)
+}
 
 // === Config Sections ===
 
@@ -126,6 +134,24 @@ pub fn config_path() -> PathBuf {
         .join("hypr/hyprink.conf")
 }
 
+pub fn resolve_config_path() -> PathBuf {
+    if let Ok(explicit) = std::env::var("HYPRINK_CONFIG") {
+        let explicit = PathBuf::from(explicit);
+        if explicit.exists() && file_matches(&explicit, &config_meta_spec()) {
+            return explicit;
+        }
+    }
+
+    let default_path = config_path();
+    if let Some(config_dir) = default_path.parent()
+        && let Some(found) = discover_metadata_config(config_dir)
+    {
+        return found;
+    }
+
+    default_path
+}
+
 pub fn cache_dir() -> PathBuf {
     std::env::var("XDG_CACHE_HOME")
         .map(PathBuf::from)
@@ -158,14 +184,14 @@ pub fn expand_path(path: &str) -> PathBuf {
 
 impl Config {
     pub fn load() -> Result<Self, ConfigError> {
-        let conf_path = config_path();
+        let conf_path = resolve_config_path();
         let bin_path = cache_file();
 
         Self::load_with_cache(&conf_path, &bin_path, false)
     }
 
     pub fn load_no_cache() -> Result<Self, ConfigError> {
-        let conf_path = config_path();
+        let conf_path = resolve_config_path();
         let bin_path = cache_file();
 
         Self::load_with_cache(&conf_path, &bin_path, true)
@@ -181,6 +207,13 @@ impl Config {
         bin_path: &Path,
         force: bool,
     ) -> Result<Self, ConfigError> {
+        if !conf_path.exists() {
+            return Err(ConfigError::ConfigFileNotFound(conf_path.to_path_buf()));
+        }
+        if !file_matches(conf_path, &config_meta_spec()) {
+            return Err(ConfigError::ConfigFileNotFound(conf_path.to_path_buf()));
+        }
+
         // Try binary cache first
         if !force
             && bin_path.exists()
@@ -202,11 +235,6 @@ impl Config {
             }
         } else {
             debug!("Cache miss or stale, loading from conf");
-        }
-
-        // Load from hyprink.conf
-        if !conf_path.exists() {
-            return Err(ConfigError::ConfigFileNotFound(conf_path.to_path_buf()));
         }
 
         let content = fs::read_to_string(conf_path)?;
@@ -271,4 +299,9 @@ impl Config {
 
         Ok(true)
     }
+}
+
+fn discover_metadata_config(config_dir: &Path) -> Option<PathBuf> {
+    let fallback = config_dir.join("hyprink.conf");
+    resolve_config_path_strict(config_dir, &fallback, &config_meta_spec())
 }

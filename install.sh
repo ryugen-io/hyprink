@@ -171,7 +171,9 @@ write_config() {
 # -----------------------------------------------------------------------------
 # Config Template (single hyprink.conf)
 # -----------------------------------------------------------------------------
-HYPRINK_CONFIG='# hyprink.conf - Single Source of Truth for system theming
+HYPRINK_CONFIG='# hypr metadata
+# type = theme
+# hyprink.conf - Single Source of Truth for system theming
 # Location: ~/.config/hypr/hyprink.conf
 
 [theme]

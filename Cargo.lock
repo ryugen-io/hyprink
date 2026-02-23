@@ -790,6 +790,11 @@ dependencies = [
 ]
 
 [[package]]
+name = "hypr-conf"
+version = "0.1.0"
+source = "git+https://github.com/ryugen-io/hypr-conf.git?branch=main#49e8ddaf714611f8f57759aefd535f6c55567aec"
+
+[[package]]
 name = "hyprdt"
 version = "0.1.0"
 source = "git+ssh://git@github.com/ryugen-io/hyprdt.git?branch=main#fa31a4b9e7fbe5a26f9e165551bbe5ed21cfe504"
@@ -814,6 +819,7 @@ dependencies = [
  "criterion",
  "directories 5.0.1",
  "dirs-next",
+ "hypr-conf",
  "hyprdt",
  "hyprlog",
  "lazy_static",
