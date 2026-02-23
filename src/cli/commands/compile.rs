@@ -6,13 +6,13 @@ use std::fs;
 pub fn execute(_config: &Config) -> Result<()> {
     info("COMPILE", "Starting config compilation...");
 
-    let conf_path = config::config_path();
+    let conf_path = config::resolve_config_path();
     let cache_path = config::cache_file();
 
     debug("COMPILE", &format!("Scanning {}", conf_path.display()));
 
     if conf_path.exists() {
-        debug("COMPILE", "Found hyprink.conf");
+        debug("COMPILE", "Found config file");
     }
 
     if cache_path.exists() {

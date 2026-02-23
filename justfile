@@ -6,11 +6,11 @@ default: build
 
 # Build release binaries
 build:
-    ./dev/scripts/build/build.sh --release
+    ~/code/.dev/scripts/shared/build/build.sh --release
 
 # Build debug binaries
 build-debug:
-    ./dev/scripts/build/build.sh
+    ~/code/.dev/scripts/shared/build/build.sh
 
 # Run the installation script (Config setup + Build)
 install:
@@ -22,55 +22,55 @@ uninstall:
 
 # Clean build artifacts
 clean:
-    ./dev/scripts/build/clean.sh
+    ~/code/.dev/scripts/shared/build/clean.sh
 
 # Clean everything (target, Cargo.lock, .tmp, logs)
 clean-full:
-    ./dev/scripts/build/clean.sh --full
+    ~/code/.dev/scripts/shared/build/clean.sh --full
 
 # Nuclear clean (includes cargo cache - requires PIN)
 clean-nuke:
-    ./dev/scripts/build/clean.sh --nuke
+    ~/code/.dev/scripts/shared/build/clean.sh --nuke
 
 # Show binary sizes
 size:
-    ./dev/scripts/build/size.sh
+    ~/code/.dev/scripts/shared/build/size.sh
 
 # Analyze binary bloat
 bloat CRATE="":
-    ./dev/scripts/build/bloat.sh {{CRATE}}
+    ~/code/.dev/scripts/shared/build/bloat.sh {{CRATE}}
 
 # === Code Quality ===
 
 # Format code
 fmt:
-    ./dev/scripts/code/fmt.sh
+    ~/code/.dev/scripts/shared/code/fmt.sh
 
 # Check format without modifying
 fmt-check:
-    ./dev/scripts/code/fmt.sh --check
+    ~/code/.dev/scripts/shared/code/fmt.sh --check
 
 # Run clippy linter
 lint:
-    ./dev/scripts/code/lint.sh
+    ~/code/.dev/scripts/shared/code/lint.sh
 
 # Run strict linter (pedantic + nursery)
 lint-strict:
-    ./dev/scripts/code/lint.sh --strict
+    ~/code/.dev/scripts/shared/code/lint.sh --strict
 
 # Find TODO/FIXME annotations
 todo:
-    ./dev/scripts/code/todo.sh
+    ~/code/.dev/scripts/shared/code/todo.sh
 
 # Pre-commit checks (format + lint + test)
 pre-commit:
-    ./dev/scripts/git/pre-commit.sh
+    ~/code/.dev/scripts/shared/git/pre-commit.sh
 
 # === Testing ===
 
 # Run all tests
 test:
-    ./dev/scripts/test/quick.sh
+    ~/code/.dev/scripts/shared/test/quick.sh
 
 # Run tests for hi_core only
 test-lib:
@@ -78,7 +78,7 @@ test-lib:
 
 # Run test coverage analysis
 coverage:
-    ./dev/scripts/test/coverage.sh
+    ~/code/.dev/scripts/shared/test/coverage.sh
 
 # Run benchmarks
 bench:
@@ -92,35 +92,35 @@ bench-lib:
 
 # Audit dependencies (unused + security)
 audit:
-    ./dev/scripts/deps/audit.sh
+    ~/code/.dev/scripts/shared/deps/audit.sh
 
 # Check for outdated dependencies
 outdated:
-    ./dev/scripts/deps/outdated.sh
+    ~/code/.dev/scripts/shared/deps/outdated.sh
 
 # === Documentation ===
 
 # Generate documentation
 docs:
-    ./dev/scripts/info/docs.sh
+    ~/code/.dev/scripts/shared/info/docs.sh
 
 # Generate and open documentation
 docs-open:
-    ./dev/scripts/info/docs.sh --open
+    ~/code/.dev/scripts/shared/info/docs.sh --open
 
 # === Info ===
 
 # Show lines of code
 loc:
-    ./dev/scripts/info/loc.sh
+    ~/code/.dev/scripts/shared/info/loc.sh
 
 # Show project tree
 tree:
-    ./dev/scripts/info/tree.sh
+    ~/code/.dev/scripts/shared/info/tree.sh
 
 # Show git changes summary
 changes:
-    ./dev/scripts/git/changes.sh
+    ~/code/.dev/scripts/shared/git/changes.sh
 
 # === hyprink Commands ===
 
